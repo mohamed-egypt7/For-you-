@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الأدمن - الرسائل المجهولة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background: #0b0f19; color: white; min-height: 100vh; }
+        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="login-screen" class="max-w-md mx-auto mt-20 glass-panel p-8 text-center">
+        <div class="w-16 h-16 bg-pink-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-pink-600/40">
+            <i class="fas fa-lock text-2xl text-white"></i>
+        </div>
+        <h1 class="text-xl font-bold mb-2">تسجيل دخول الأدمن</h1>
+        <p class="text-xs text-gray-400 mb-6">أدخل كلمة المرور للوصول للوحة التحكم (الباسورد: Yasser_9090)</p>
+        <input type="password" id="admin-password" placeholder="كلمة المرور" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 mb-4 text-center font-mono">
+        <button onclick="checkLogin()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-90 text-white font-bold py-3.5 rounded-2xl transition shadow-lg text-sm">
+            دخول لوحة التحكم
+        </button>
+    </div>
+
+    <!-- لوحة التحكم الرئيسية (مخفية حتى يتم تسجيل الدخول) -->
+    <div id="admin-dashboard" class="max-w-4xl mx-auto hidden">
+        <div class="flex items-center justify-between mb-8 glass-panel p-6">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-sliders-h text-xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold">إدارة صفحات الرسائل</h1>
+                    <p class="text-xs text-gray-400">أنشئ وعدل روابط الأشخاص بكل سهولة</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-4 py-2 rounded-xl text-xs font-bold transition">
+                تسجيل الخروج
+            </button>
+        </div>
+
+        <!-- نموذج إضافة / تعديل صفحة شخص -->
+        <div class="glass-panel p-6 mb-8">
+            <h2 id="form-title" class="text-base font-bold mb-4 text-pink-400">إضافة رسالة جديدة لشخص جديد</h2>
+            <div class="space-y-4 text-right">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-300 mb-1">اسم الشخص (العنوان):</label>
+                        <input type="text" id="person-name" placeholder="مثال: سارة محمد" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-300 mb-1">امتداد الرابط المخصص (بالإنجليزية بدون مسافات):</label>
+                        <input type="text" id="person-slug" placeholder="مثال: sara" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-mono text-left focus:outline-none focus:border-pink-500" dir="ltr">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-300 mb-1">الوصف الفرعي تحت الاسم:</label>
+                    <input type="text" id="person-subtitle" placeholder="مثال: رسالة خاصة تم اختيارها لك بعناية" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-300 mb-1">نص الرسالة الرومانسية أو السرية:</label>
+                    <textarea id="person-message" rows="4" placeholder="اكتب هنا ما تريد إخباره به..." class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500 resize-none"></textarea>
+                </div>
+                <button onclick="savePageData()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-90 text-white font-bold py-3.5 rounded-2xl transition shadow-lg text-sm">
+                    حفظ ونشر الصفحة 🚀
+                </button>
+            </div>
+        </div>
+
+        <!-- قائمة الصفحات المنشأة -->
+        <div class="glass-panel p-6">
+            <h2 class="text-base font-bold mb-4">الروابط والصفحات الحالية:</h2>
+            <div id="pages-list" class="space-y-3">
+                <!-- يتم تعبئتها تلقائياً -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PASS = "Yasser_9090";
+
+        function checkLogin() {
+            const pass = document.getElementById('admin-password').value;
+            if (pass === ADMIN_PASS) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                loadPagesList();
+            } else {
+                alert("كلمة المرور غير صحيحة! الباسورد هو: Yasser_9090");
+            }
+        }
+
+        function logout() {
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('admin-password').value = '';
+        }
+
+        function loadPagesList() {
+            const listContainer = document.getElementById('pages-list');
+            listContainer.innerHTML = '';
+
+            let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
+            const keys = Object.keys(db);
+
+            if (keys.length === 0) {
+                listContainer.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">لا توجد صفحات مضافة حتى الآن.</p>';
+                return;
+            }
+
+            keys.forEach(slug => {
+                const item = db[slug];
+                const currentUrl = window.location.href.replace('admin.html', `index.html?to=${slug}`);
+
+                const card = `
+                    <div class="bg-white/5 border border-white/10 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="text-right">
+                            <h3 class="font-bold text-white text-sm">${item.name} <span class="text-xs text-pink-400 font-mono">(?to=${slug})</span></h3>
+                            <p class="text-xs text-gray-400 truncate max-w-md mt-1">${item.message}</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                            <button onclick="copyLink('${currentUrl}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                                <i class="fas fa-copy"></i> نسخ الرابط
+                            </button>
+                            <button onclick="deletePage('${slug}')" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-3 py-2 rounded-lg text-xs font-bold transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listContainer.innerHTML += card;
+            });
+        }
+
+        function savePageData() {
+            const name = document.getElementById('person-name').value.trim();
+            const slug = document.getElementById('person-slug').value.trim().toLowerCase().replace(/\s+/g, '-');
+            const subtitle = document.getElementById('person-subtitle').value.trim();
+            const message = document.getElementById('person-message').value.trim();
+
+            if (!name || !slug || !message) {
+                alert("يرجى إكمال الحقول الأساسية (الاسم، الامتداد، والرسالة)!");
+                return;
+            }
+
+            let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
+            db[slug] = { name, subtitle, message };
+            localStorage.setItem('secret_pages_db', JSON.stringify(db));
+
+            alert("تم حفظ ونشر الصفحة بنجاح! يمكنك الآن نسخ الرابط ومشاركته.");
+            
+            // تفريغ الحقول
+            document.getElementById('person-name').value = '';
+            document.getElementById('person-slug').value = '';
+            document.getElementById('person-subtitle').value = '';
+            document.getElementById('person-message').value = '';
+
+            loadPagesList();
+        }
+
+        function deletePage(slug) {
+            if (confirm(`هل أنت متأكد من حذف الصفحة الخاصة بـ (${slug})؟`)) {
+                let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
+                delete db[slug];
+                localStorage.setItem('secret_pages_db', JSON.stringify(db));
+                loadPagesList();
+            }
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert("تم نسخ الرابط بنجاح! أرسله لمن تحب 🔗");
+            });
+        }
+    </script>
+</body>
+</html>
