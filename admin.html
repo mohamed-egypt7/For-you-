@@ -29,9 +29,9 @@
         </div>
     </div>
 
-    <!-- 2. صانع الصفحات -->
+    <!-- 2. صانع وتعديل الصفحات -->
     <div class="glass-panel p-6 sm:p-8">
-        <h2 class="text-xl font-bold text-pink-400 mb-6 flex items-center gap-2">
+        <h2 id="form-title" class="text-xl font-bold text-pink-400 mb-6 flex items-center gap-2">
             <i class="fas fa-tools"></i> صانع صفحات الرسائل (المنفذ 9090)
         </h2>
 
@@ -39,6 +39,7 @@
             <div>
                 <label class="block text-xs text-gray-300 font-semibold mb-1">معرف الرابط (Slug) بالإنجليزية بدون مسافات (مثال: mohamed):</label>
                 <input type="text" id="page-slug" placeholder="mok" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500 font-mono">
+                <input type="hidden" id="original-slug"> <!-- لحفظ المعرف القديم في حالة التعديل -->
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -73,13 +74,18 @@
                 </div>
             </div>
 
-            <button onclick="savePageData()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-sm mt-4">
-                <i class="fas fa-save ml-2"></i> حفظ الصفحة وإنشاء الرابط
-            </button>
+            <div class="flex gap-2 mt-4">
+                <button onclick="savePageData()" class="flex-1 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-sm">
+                    <i class="fas fa-save ml-2"></i> حفظ الصفحة وإنشاء الرابط
+                </button>
+                <button onclick="resetForm()" id="cancel-edit-btn" class="hidden bg-gray-600 hover:bg-gray-700 text-white font-bold px-5 py-4 rounded-xl transition text-sm">
+                    إلغاء التعديل
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- 3. الصفحات المحفوظة -->
+    <!-- 3. الصفحات المحفوظة مع أزرار التعديل والحذف -->
     <div class="glass-panel p-6">
         <h2 class="text-lg font-bold text-pink-400 mb-4">الصفحات المحفوظة حالياً:</h2>
         <div id="pages-list" class="space-y-3 text-sm"></div>
@@ -88,6 +94,7 @@
     <script>
         function savePageData() {
             const slug = document.getElementById('page-slug').value.trim().toLowerCase();
+            const originalSlug = document.getElementById('original-slug').value.trim();
             const name = document.getElementById('page-name').value.trim();
             const password = document.getElementById('page-password').value.trim();
             const imageUrl = document.getElementById('page-image').value.trim();
@@ -102,6 +109,11 @@
 
             let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
 
+            // لو المستخدم غير الـ Slug أثناء التعديل، نمسح القديم ونعمل جديد
+            if (originalSlug && originalSlug !== slug) {
+                delete db[originalSlug];
+            }
+
             db[slug] = {
                 name: name,
                 password: password,
@@ -113,7 +125,8 @@
             };
 
             localStorage.setItem('secret_pages_db', JSON.stringify(db));
-            alert("تم حفظ الصفحة بنجاح! الرابط الفعال: ?to=" + slug);
+            alert("تم حفظ الصفحة بنجاح!");
+            resetForm();
             loadPagesList();
         }
 
@@ -122,17 +135,68 @@
             const listContainer = document.getElementById('pages-list');
             listContainer.innerHTML = '';
 
+            if (Object.keys(db).length === 0) {
+                listContainer.innerHTML = '<p class="text-gray-400 text-xs text-center py-2">لا توجد صفحات محفوظة.</p>';
+                return;
+            }
+
             for (let slug in db) {
                 const item = document.createElement('div');
-                item.className = "bg-white/5 p-3 rounded-xl flex items-center justify-between border border-white/5";
+                item.className = "bg-white/5 p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between border border-white/5 gap-3";
                 item.innerHTML = `
                     <div>
                         <p class="font-bold text-pink-300">الاسم: ${db[slug].name}</p>
                         <p class="text-xs text-gray-400 font-mono">الرابط: ?to=${slug} | الباسورد: ${db[slug].password}</p>
                     </div>
-                    <a href="index.html?to=${slug}" target="_blank" class="bg-pink-600/30 text-pink-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-pink-600 hover:text-white transition">معاينة</a>
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <a href="index.html?to=${slug}" target="_blank" class="bg-blue-600/30 text-blue-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-600 hover:text-white transition">معاينة</a>
+                        <button onclick="editPage('${slug}')" class="bg-amber-600/30 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-600 hover:text-white transition">تعديل</button>
+                        <button onclick="deletePage('${slug}')" class="bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 hover:text-white transition">حذف</button>
+                    </div>
                 `;
                 listContainer.appendChild(item);
+            }
+        }
+
+        function editPage(slug) {
+            let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
+            if (!db[slug]) return;
+
+            const page = db[slug];
+            document.getElementById('page-slug').value = slug;
+            document.getElementById('original-slug').value = slug; // نخزن القيمة القديمة هنا
+            document.getElementById('page-name').value = page.name;
+            document.getElementById('page-password').value = page.password;
+            document.getElementById('page-image').value = page.imageUrl || '';
+            document.getElementById('page-message').value = page.message;
+            document.getElementById('page-song-url').value = page.songUrl;
+            document.getElementById('page-song-title').value = page.songTitle;
+
+            document.getElementById('form-title').innerHTML = `<i class="fas fa-edit"></i> تعديل صفحة: ${page.name}`;
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            document.getElementById('page-slug').value = '';
+            document.getElementById('original-slug').value = '';
+            document.getElementById('page-name').value = '';
+            document.getElementById('page-password').value = '';
+            document.getElementById('page-image').value = '';
+            document.getElementById('page-message').value = '';
+            document.getElementById('page-song-url').value = '';
+            document.getElementById('page-song-title').value = '';
+
+            document.getElementById('form-title').innerHTML = `<i class="fas fa-tools"></i> صانع صفحات الرسائل (المنفذ 9090)`;
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+        }
+
+        function deletePage(slug) {
+            if (confirm(`هل أنت متأكد من حذف صفحة المعرف (${slug})؟`)) {
+                let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
+                delete db[slug];
+                localStorage.setItem('secret_pages_db', JSON.stringify(db));
+                loadPagesList();
             }
         }
 
@@ -146,7 +210,7 @@
                 return;
             }
 
-            inbox.forEach((msg, index) => {
+            inbox.forEach((msg) => {
                 const card = document.createElement('div');
                 card.className = "bg-white/5 p-4 rounded-2xl border border-white/10 space-y-2 text-sm";
                 card.innerHTML = `
