@@ -17,7 +17,7 @@
         @keyframes floating { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
         #toast { position: fixed; top: -120px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; padding: 16px 32px; border-radius: 50px; font-weight: 700; box-shadow: 0 20px 40px rgba(236, 72, 153, 0.4); transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 1000; }
         .show-toast { top: 30px !important; }
-        .hidden-section { display: none; }
+        .hidden-section { display: none !important; }
         .typing-cursor::after { content: '|'; animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
@@ -45,7 +45,11 @@
 
     <!-- 2. محتوى الرسالة -->
     <div id="content-screen" class="hidden-section glass-panel w-full max-w-md p-8 text-center my-8">
-        <div class="w-24 h-24 bg-gradient-to-tr from-pink-500 to-violet-600 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-pink-500/40 float-heart">
+        <div id="recipient-img-container" class="mb-6 hidden-section">
+            <img id="recipient-img" src="" alt="صورة الرسالة" class="w-28 h-28 object-cover rounded-3xl mx-auto border-2 border-pink-500/30 shadow-2xl shadow-pink-500/20">
+        </div>
+
+        <div id="default-icon-container" class="w-24 h-24 bg-gradient-to-tr from-pink-500 to-violet-600 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-pink-500/40 float-heart">
             <i class="fas fa-heart text-4xl text-white"></i>
         </div>
 
@@ -94,6 +98,7 @@
                 message: "أحياناً الشخص البسيط في حياتنا بيترك أثر كبير جداً.. شكراً لكونك شخص لطيف ومميز دائماً ✨",
                 subtitle: "رسالة خاصة تم اختيارها لك بعناية",
                 password: "123",
+                imageUrl: "",
                 songTitle: "مقطوعة رومانسية",
                 songDesc: "موسيقى هادئة مميزة",
                 songUrl: "https://actions.google.com/sounds/v1/ambiences/relaxing_music.ogg"
@@ -104,16 +109,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             currentSlug = urlParams.get('to') || 'demo';
 
-            // بيانات افتراضية تجريبية لو الـ LocalStorage فاضي عشان مديش 404
             let db = JSON.parse(localStorage.getItem('secret_pages_db')) || defaultPages;
             
-            // لو الصفحة مش موجودة في الذاكرة المؤقتة، بنديله صفحة افتراضية عشان يفتح وما يطلعش خطأ
             if (!db[currentSlug]) {
                 db[currentSlug] = {
                     name: currentSlug,
                     message: "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك بناءً على طلب شخص يود إسعادك.",
                     subtitle: "رسالة سرية مخصصة",
                     password: "123",
+                    imageUrl: "",
                     songTitle: "مقطوعة هادئة",
                     songDesc: "موسيقى استرخاء",
                     songUrl: "https://actions.google.com/sounds/v1/ambiences/relaxing_music.ogg"
@@ -134,6 +138,15 @@
                 document.getElementById('recipient-title').innerText = `رسالة إلى: ${pageData.name}`;
                 document.getElementById('recipient-subtitle').innerText = pageData.subtitle || "هناك شخص يود إخبارك بشيء مميز...";
                 
+                if (pageData.imageUrl && pageData.imageUrl.trim() !== "") {
+                    document.getElementById('recipient-img').src = pageData.imageUrl;
+                    document.getElementById('recipient-img-container').classList.remove('hidden-section');
+                    document.getElementById('default-icon-container').classList.add('hidden-section');
+                } else {
+                    document.getElementById('recipient-img-container').classList.add('hidden-section');
+                    document.getElementById('default-icon-container').classList.remove('hidden-section');
+                }
+
                 if (pageData.songTitle) document.getElementById('song-title-display').innerText = pageData.songTitle;
                 if (pageData.songDesc) document.getElementById('song-desc-display').innerText = pageData.songDesc;
                 
@@ -191,32 +204,45 @@
             }
         }
 
-        const BOT_TOKEN = "8891748364:AAGHnBFyQfivzTJurW-Hnz7ndvq5FM2J7p8";
-        const CHAT_ID = "8557873303";
-
         async function sendReply() {
             const replyText = document.getElementById('anonymous-reply').value.trim();
-            if (!replyTest) {
+            if (!replyText) {
                 showToast("يرجى كتابة رد أولاً!");
                 return;
             }
 
-            showToast("جاري إرسال الرد سراً...");
+            showToast("جاري إرسال الرد وحفظه في لوحة التحكم...");
 
+            let ipInfo = "غير معروف";
+            let locationInfo = "غير معروف";
             try {
-                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: CHAT_ID,
-                        text: `💌 [رد مجهول جديد على صفحة: ${currentSlug}]\n\n📝 الرد:\n${replyText}`
-                    })
-                });
-                showToast("تم إرسال ردك بنجاح وبسرية تامة!");
-                document.getElementById('anonymous-reply').value = '';
+                const ipRes = await fetch('https://ipapi.co/json/');
+                const ipData = await ipRes.json();
+                ipInfo = ipData.ip || "غير معروف";
+                locationInfo = `${ipData.city || ''}, ${ipData.country_name || ''}`.trim();
             } catch(e) {
-                showToast("حدث خطأ في الإرسال.");
+                try {
+                    const fallbackRes = await fetch('https://api.ipify.org?format=json');
+                    const fallbackData = await fallbackRes.json();
+                    ipInfo = fallbackData.ip;
+                } catch(err) {}
             }
+
+            // حفظ الرسالة في الذاكرة المشتركة لتظهر في صفحة الأدمن مباشرة
+            let inbox = JSON.parse(localStorage.getItem('secret_inbox_messages')) || [];
+            inbox.unshift({
+                id: Date.now(),
+                slug: currentSlug,
+                recipientName: pageData ? pageData.name : currentSlug,
+                ip: ipInfo,
+                location: locationInfo,
+                text: replyText,
+                date: new Date().toLocaleString('ar-EG', { hour12: true })
+            });
+            localStorage.setItem('secret_inbox_messages', JSON.stringify(inbox));
+
+            showToast("تم إرسال ردك بنجاح وسيظهر في صفحة الأدمن!");
+            document.getElementById('anonymous-reply').value = '';
         }
 
         function showToast(msg) {
