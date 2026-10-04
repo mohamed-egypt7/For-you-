@@ -18,7 +18,6 @@
         #toast { position: fixed; top: -120px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; padding: 16px 32px; border-radius: 50px; font-weight: 700; box-shadow: 0 20px 40px rgba(236, 72, 153, 0.4); transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 1000; }
         .show-toast { top: 30px !important; }
         .hidden-section { display: none; }
-        /* تأثير مؤشر الكتابة */
         .typing-cursor::after { content: '|'; animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
@@ -44,7 +43,7 @@
         </div>
     </div>
 
-    <!-- 2. محتوى الرسالة الرومانسية -->
+    <!-- 2. محتوى الرسالة -->
     <div id="content-screen" class="hidden-section glass-panel w-full max-w-md p-8 text-center my-8">
         <div class="w-24 h-24 bg-gradient-to-tr from-pink-500 to-violet-600 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-pink-500/40 float-heart">
             <i class="fas fa-heart text-4xl text-white"></i>
@@ -53,16 +52,12 @@
         <h1 id="recipient-title" class="text-2xl font-extrabold mb-2 tracking-wide text-pink-400">رسالة مجهولة لك</h1>
         <p id="recipient-subtitle" class="text-xs text-gray-400 mb-6">هناك شخص يود إخبارك بشيء مميز...</p>
 
-        <!-- صندوق الرسالة بتأثير الكتابة الحية -->
         <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 text-right relative overflow-hidden">
             <div class="absolute top-2 left-3 text-pink-500/20 text-6xl font-serif">“</div>
-            <p id="main-message" class="text-sm text-gray-200 leading-relaxed relative z-10 whitespace-pre-line min-h-[90px]">
-                <!-- يكتب تلقائياً -->
-            </p>
+            <p id="main-message" class="text-sm text-gray-200 leading-relaxed relative z-10 whitespace-pre-line min-h-[90px]"></p>
             <div class="absolute bottom-1 right-3 text-pink-500/20 text-6xl font-serif">”</div>
         </div>
 
-        <!-- مشغل الموسيقى الفخم -->
         <div class="mb-6 p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between">
             <div class="flex items-center gap-3.5">
                 <div class="w-12 h-12 bg-pink-500/20 rounded-2xl flex items-center justify-center text-pink-400 shadow-inner">
@@ -78,7 +73,6 @@
             </button>
         </div>
 
-        <!-- صندوق الرد المجهول -->
         <div class="space-y-3 text-right">
             <label class="block text-xs text-gray-300 font-semibold">رد على المرسل (بشكل مجهول):</label>
             <textarea id="anonymous-reply" rows="3" placeholder="اكتب ردك هنا..." class="w-full bg-white/5 border border-white/10 rounded-xl p-3.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 transition resize-none"></textarea>
@@ -110,16 +104,23 @@
             const urlParams = new URLSearchParams(window.location.search);
             currentSlug = urlParams.get('to') || 'demo';
 
+            // بيانات افتراضية تجريبية لو الـ LocalStorage فاضي عشان مديش 404
             let db = JSON.parse(localStorage.getItem('secret_pages_db')) || defaultPages;
-            pageData = db[currentSlug];
-
-            if (!pageData) {
-                document.getElementById('password-screen').innerHTML = `
-                    <div class="w-20 h-20 bg-red-500/20 text-red-400 rounded-3xl mx-auto flex items-center justify-center mb-4"><i class="fas fa-exclamation-triangle text-3xl"></i></div>
-                    <h1 class="text-xl font-bold mb-2">عذراً!</h1>
-                    <p class="text-xs text-gray-400">هذه الصفحة غير موجودة أو تم حذفها.</p>
-                `;
+            
+            // لو الصفحة مش موجودة في الذاكرة المؤقتة، بنديله صفحة افتراضية عشان يفتح وما يطلعش خطأ
+            if (!db[currentSlug]) {
+                db[currentSlug] = {
+                    name: currentSlug,
+                    message: "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك بناءً على طلب شخص يود إسعادك.",
+                    subtitle: "رسالة سرية مخصصة",
+                    password: "123",
+                    songTitle: "مقطوعة هادئة",
+                    songDesc: "موسيقى استرخاء",
+                    songUrl: "https://actions.google.com/sounds/v1/ambiences/relaxing_music.ogg"
+                };
             }
+
+            pageData = db[currentSlug];
         };
 
         function unlockPage() {
@@ -139,7 +140,6 @@
                 const audio = document.getElementById('bg-music');
                 audio.src = pageData.songUrl || "https://actions.google.com/sounds/v1/ambiences/relaxing_music.ogg";
 
-                // تشغيل تأثير الكتابة بالحرف (Typewriter)
                 typeWriterEffect(pageData.message);
             } else {
                 showToast("كلمة المرور غير صحيحة!");
@@ -151,7 +151,7 @@
             container.innerHTML = '';
             container.classList.add('typing-cursor');
             let i = 0;
-            const speed = 35; // سرعة الكتابة بالمللي ثانية
+            const speed = 35;
 
             function typing() {
                 if (i < text.length) {
@@ -196,7 +196,7 @@
 
         async function sendReply() {
             const replyText = document.getElementById('anonymous-reply').value.trim();
-            if (!replyText) {
+            if (!replyTest) {
                 showToast("يرجى كتابة رد أولاً!");
                 return;
             }
