@@ -11,12 +11,13 @@
         body { font-family: 'Cairo', sans-serif; background: #0b0f19; color: white; min-height: 100vh; overflow-x: hidden; position: relative; }
         .bg-glow { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, rgba(99, 102, 241, 0.05) 50%, transparent 80%); z-index: -1; animation: pulseGlow 7s ease-in-out infinite alternate; }
         @keyframes pulseGlow { 0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; } 100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } }
-        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 32px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 32px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes fadeIn { 0% { opacity: 0; transform: translateY(20px) scale(0.97); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
         .float-heart { animation: floating 3s ease-in-out infinite; }
         @keyframes floating { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; padding: 14px 28px; border-radius: 50px; font-weight: 700; box-shadow: 0 15px 30px rgba(236, 72, 153, 0.4); transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 1000; }
         .show-toast { top: 25px !important; }
+        .hidden-section { display: none; }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
@@ -24,8 +25,24 @@
     <div class="bg-glow"></div>
     <div id="toast">تم الإرسال بنجاح!</div>
 
-    <div class="glass-panel w-full max-w-md p-8 text-center my-8">
-        <!-- أيقونة القلب العائمة -->
+    <!-- 1. شاشة إدخال الباسورد أولاً -->
+    <div id="password-screen" class="glass-panel w-full max-w-md p-8 text-center my-8">
+        <div class="w-20 h-20 bg-gradient-to-tr from-pink-500 to-violet-600 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-pink-500/30 float-heart">
+            <i class="fas fa-lock text-3xl text-white"></i>
+        </div>
+        <h1 class="text-2xl font-extrabold mb-2 tracking-wide text-pink-400">هذه الرسالة محمية</h1>
+        <p class="text-xs text-gray-400 mb-6">أدخل كلمة المرور الخاصة لفتح هذه الصفحة المخصصة لك</p>
+        
+        <div class="space-y-4">
+            <input type="password" id="page-password-input" placeholder="اكتب كلمة المرور هنا..." class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white text-center placeholder-gray-500 focus:outline-none focus:border-pink-500 font-mono transition">
+            <button onclick="unlockPage()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-90 text-white font-bold py-3.5 rounded-2xl transition shadow-lg shadow-pink-600/30 text-sm flex items-center justify-center gap-2">
+                <i class="fas fa-key"></i> فتح الرسالة
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. محتوى الرسالة الرومانسية (مخفي لحين إدخال الباسورد الصحيح) -->
+    <div id="content-screen" class="hidden-section glass-panel w-full max-w-md p-8 text-center my-8">
         <div class="w-20 h-20 bg-gradient-to-tr from-pink-500 to-violet-600 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-pink-500/30 float-heart">
             <i class="fas fa-heart text-3xl text-white"></i>
         </div>
@@ -33,7 +50,7 @@
         <h1 id="recipient-title" class="text-2xl font-extrabold mb-2 tracking-wide text-pink-400">رسالة مجهولة لك</h1>
         <p id="recipient-subtitle" class="text-xs text-gray-400 mb-6">هناك شخص يود إخبارك بشيء مميز...</p>
 
- صندوق الرسالة -->
+        <!-- صندوق الرسالة -->
         <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 text-right relative overflow-hidden">
             <div class="absolute top-2 left-3 text-pink-500/20 text-5xl font-serif">“</div>
             <p id="main-message" class="text-sm text-gray-200 leading-relaxed relative z-10 whitespace-pre-line">
@@ -42,18 +59,18 @@
             <div class="absolute bottom-1 right-3 text-pink-500/20 text-5xl font-serif">”</div>
         </div>
 
-        <!-- مشغل الموسيقى الرومانسية الهادئة -->
-        <div class="mb-6 p-3 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between">
+        <!-- مشغل الموسيقى المخصص -->
+        <div class="mb-6 p-3.5 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-pink-500/20 rounded-xl flex items-center justify-center text-pink-400">
-                    <i class="fas fa-music animate-spin"></i>
+                <div class="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center text-pink-400">
+                    <i class="fas fa-music text-lg" id="music-symbol"></i>
                 </div>
                 <div class="text-right">
-                    <p class="text-xs font-bold text-white">مقطوعة هادئة</p>
-                    <p class="text-[10px] text-gray-400">اضغط للاستماع أثناء القراءة</p>
+                    <p id="song-title-display" class="text-xs font-bold text-white">مقطوعة هادئة</p>
+                    <p id="song-desc-display" class="text-[10px] text-gray-400">اضغط للاستماع أثناء القراءة</p>
                 </div>
             </div>
-            <button onclick="toggleMusic()" id="music-btn" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+            <button onclick="toggleMusic()" id="music-btn" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md">
                 <i class="fas fa-play" id="music-icon"></i> <span id="music-text">تشغيل</span>
             </button>
         </div>
@@ -66,63 +83,88 @@
                 <i class="fas fa-paper-plane"></i> إرسال الرد سراً
             </button>
         </div>
-
-        <div class="mt-6 pt-4 border-t border-white/10 text-center">
-            <a href="admin.html" class="text-[11px] text-gray-500 hover:text-gray-300 transition">لوحة تحكم الأدمن (إنشاء رسالة جديدة)</a>
-        </div>
     </div>
 
-    <!-- عنصر الصوت (موسيقى هادئة من مصدر مجاني آمن) -->
-    <audio id="bg-music" loop src="https://actions.google.com/sounds/v1/ambiences/relaxing_music.ogg"></audio>
+    <!-- عنصر الصوت -->
+    <audio id="bg-music" loop></audio>
 
     <script>
-        // بيانات افتراضية لو لم يتم إدخال شيء
+        let currentSlug = '';
+        let pageData = null;
+
         const defaultPages = {
             "demo": {
                 name: "أحمد أو سارة",
                 message: "أحياناً الشخص البسيط في حياتنا بيترك أثر كبير جداً.. شكراً لكونك شخص لطيف ومميز دائماً ✨",
-                subtitle: "رسالة خاصة تم اختيارها لك بعناية"
+                subtitle: "رسالة خاصة تم اختيارها لك بعناية",
+                password: "123",
+                songTitle: "مقطوعة رومانسية",
+                songDesc: "موسيقى هادئة مميزة",
+                songUrl: "https://actions.google.com/sounds/v1/ambiences/relaxing_music.ogg"
             }
         };
 
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const slug = urlParams.get('to') || 'demo';
+            currentSlug = urlParams.get('to') || 'demo';
 
-            // جلب البيانات من التخزين المحلي (LocalStorage) أو البيانات الافتراضية
             let db = JSON.parse(localStorage.getItem('secret_pages_db')) || defaultPages;
+            pageData = db[currentSlug];
 
-            if (db[slug]) {
-                document.getElementById('recipient-title').innerText = `رسالة إلى: ${db[slug].name}`;
-                document.getElementById('recipient-subtitle').innerText = db[slug].subtitle || "هناك شخص يود إخبارك بشيء مميز...";
-                document.getElementById('main-message').innerText = db[slug].message;
-            } else {
-                document.getElementById('recipient-title').innerText = "عذراً!";
-                document.getElementById('main-message').innerText = "هذه الصفحة غير موجودة أو تم حذفها من قبل الأدمن.";
+            if (!pageData) {
+                document.getElementById('password-screen').innerHTML = `
+                    <div class="w-16 h-16 bg-red-500/20 text-red-400 rounded-2xl mx-auto flex items-center justify-center mb-4"><i class="fas fa-exclamation-triangle text-2xl"></i></div>
+                    <h1 class="text-xl font-bold mb-2">عذراً!</h1>
+                    <p class="text-xs text-gray-400">هذه الصفحة غير موجودة أو تم حذفها.</p>
+                `;
             }
         };
 
-        // تشغيل وإيقاف الموسيقى
+        function unlockPage() {
+            const enteredPass = document.getElementById('page-password-input').value.trim();
+            if (!pageData) return;
+
+            if (enteredPass === pageData.password) {
+                document.getElementById('password-screen').classList.add('hidden-section');
+                document.getElementById('content-screen').classList.remove('hidden-section');
+
+                // تعبئة البيانات
+                document.getElementById('recipient-title').innerText = `رسالة إلى: ${pageData.name}`;
+                document.getElementById('recipient-subtitle').innerText = pageData.subtitle || "هناك شخص يود إخبارك بشيء مميز...";
+                document.getElementById('main-message').innerText = pageData.message;
+                
+                if (pageData.songTitle) document.getElementById('song-title-display').innerText = pageData.songTitle;
+                if (pageData.songDesc) document.getElementById('song-desc-display').innerText = pageData.songDesc;
+                
+                const audio = document.getElementById('bg-music');
+                audio.src = pageData.songUrl || "https://actions.google.com/sounds/v1/ambiences/relaxing_music.ogg";
+            } else {
+                showToast("كلمة المرور غير صحيحة!");
+            }
+        }
+
         let isPlaying = false;
         function toggleMusic() {
             const music = document.getElementById('bg-music');
             const icon = document.getElementById('music-icon');
             const text = document.getElementById('music-text');
+            const symbol = document.getElementById('music-symbol');
             
             if (!isPlaying) {
-                music.play();
+                music.play().catch(e => alert("اضغط مرة أخرى لتشغيل الأغنية"));
                 isPlaying = true;
                 icon.className = "fas fa-pause";
                 text.innerText = "إيقاف";
+                symbol.classList.add('animate-spin');
             } else {
                 music.pause();
                 isPlaying = false;
                 icon.className = "fas fa-play";
                 text.innerText = "تشغيل";
+                symbol.classList.remove('animate-spin');
             }
         }
 
-        // إرسال الرد المجهول لتليجرام (أو حفظه)
         const BOT_TOKEN = "8891748364:AAGHnBFyQfivzTJurW-Hnz7ndvq5FM2J7p8";
         const CHAT_ID = "8557873303";
 
@@ -133,9 +175,6 @@
                 return;
             }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const slug = urlParams.get('to') || 'demo';
-
             showToast("جاري إرسال الرد سراً...");
 
             try {
@@ -144,7 +183,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: CHAT_ID,
-                        text: `💌 [رد مجهول جديد على رسالة: ${slug}]\n\n📝 الرد:\n${replyText}`
+                        text: `💌 [رد مجهول جديد على صفحة: ${currentSlug}]\n\n📝 الرد:\n${replyText}`
                     })
                 });
                 showToast("تم إرسال ردك بنجاح وبسرية تامة!");
