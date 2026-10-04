@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم الرسائل الخاصة</title>
+    <title>لوحة تحكم الرسائل الخاصة الاحترافية</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -14,11 +14,27 @@
 </head>
 <body class="max-w-3xl mx-auto space-y-8">
 
-    <!-- 1. صندوق الوارد (الرسائل المستلمة - بدون زر حذف منفرد) -->
+    <!-- شريط إدارة الملفات والنسخ الاحتياطي -->
+    <div class="glass-panel p-4 flex flex-wrap items-center justify-between gap-4 border border-purple-500/30">
+        <div class="flex items-center gap-2 text-sm text-purple-300 font-bold">
+            <i class="fas fa-file-shield"></i> الأمان والنسخ الاحتياطي (ملفات الداتا):
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="exportDataFile()" class="bg-purple-600/30 text-purple-300 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition">
+                <i class="fas fa-download ml-1"></i> تحميل ملف الداتا (Backup)
+            </button>
+            <label class="bg-blue-600/30 text-blue-300 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
+                <i class="fas fa-upload ml-1"></i> استرجاع ملف
+                <input type="file" id="import-file" accept=".json" onchange="importDataFile(event)" class="hidden">
+            </label>
+        </div>
+    </div>
+
+    <!-- 1. صندوق الوارد (الرسائل الواردة مع التحديث التلقائي والعداد) -->
     <div class="glass-panel p-6 sm:p-8 border border-pink-500/30">
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-xl font-bold text-pink-400 flex items-center gap-2">
-                <i class="fas fa-inbox"></i> صندوق الوارد (الردود والرسائل الواردة)
+                <i class="fas fa-inbox"></i> صندوق الوارد (<span id="inbox-count">0</span>)
             </h1>
             <button onclick="clearInbox()" class="bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold transition">
                 <i class="fas fa-trash"></i> تفريغ صندوق الوارد
@@ -85,7 +101,7 @@
         </div>
     </div>
 
-    <!-- 3. الصفحات المحفوظة مع أزرار التعديل والحذف -->
+    <!-- 3. الصفحات المحفوظة (مع أزرار النسخ والمعاينة والتعديل) -->
     <div class="glass-panel p-6">
         <h2 class="text-lg font-bold text-pink-400 mb-4">الصفحات المحفوظة حالياً:</h2>
         <div id="pages-list" class="space-y-3 text-sm"></div>
@@ -147,7 +163,8 @@
                         <p class="font-bold text-pink-300">الاسم: ${db[slug].name}</p>
                         <p class="text-xs text-gray-400 font-mono">الرابط: ?to=${slug} | الباسورد: ${db[slug].password}</p>
                     </div>
-                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+                        <button onclick="copyPageLink('${slug}')" class="bg-purple-600/30 text-purple-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-purple-600 hover:text-white transition"><i class="fas fa-copy"></i> نسخ الرابط</button>
                         <a href="index.html?to=${slug}" target="_blank" class="bg-blue-600/30 text-blue-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-600 hover:text-white transition">معاينة</a>
                         <button onclick="editPage('${slug}')" class="bg-amber-600/30 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-600 hover:text-white transition">تعديل</button>
                         <button onclick="deletePage('${slug}')" class="bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 hover:text-white transition">حذف</button>
@@ -155,6 +172,13 @@
                 `;
                 listContainer.appendChild(item);
             }
+        }
+
+        function copyPageLink(slug) {
+            const fullLink = window.location.href.replace('admin.html', 'index.html') + `?to=${slug}`;
+            navigator.clipboard.writeText(fullLink).then(() => {
+                alert("تم نسخ رابط الصفحة بنجاح!");
+            });
         }
 
         function editPage(slug) {
@@ -202,6 +226,7 @@
         function loadInbox() {
             let inbox = JSON.parse(localStorage.getItem('secret_inbox_messages')) || [];
             const inboxContainer = document.getElementById('inbox-list');
+            document.getElementById('inbox-count').innerText = inbox.length;
             inboxContainer.innerHTML = '';
 
             if (inbox.length === 0) {
@@ -233,9 +258,47 @@
             }
         }
 
+        function exportDataFile() {
+            const backupData = {
+                pages: JSON.parse(localStorage.getItem('secret_pages_db')) || {},
+                inbox: JSON.parse(localStorage.getItem('secret_inbox_messages')) || []
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "secret_system_backup.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDataFile(event) {
+            const fileReader = new FileReader();
+            if (event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0], "UTF-8");
+                fileReader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (importedData.pages) {
+                            localStorage.setItem('secret_pages_db', JSON.stringify(importedData.pages));
+                        }
+                        if (importedData.inbox) {
+                            localStorage.setItem('secret_inbox_messages', JSON.stringify(importedData.inbox));
+                        }
+                        loadPagesList();
+                        loadInbox();
+                        alert("تم استرجاع الملفات والبيانات بنجاح!");
+                    } catch (error) {
+                        alert("حدث خطأ أثناء قراءة الملف، تأكد أنه ملف JSON صحيح.");
+                    }
+                }
+            }
+        }
+
         window.onload = function() {
             loadPagesList();
             loadInbox();
+            setInterval(loadInbox, 3000); // تحديث تلقائي لصندوق الوارد كل 3 ثواني
         };
     </script>
 </body>
