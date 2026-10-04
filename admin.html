@@ -14,7 +14,7 @@
 </head>
 <body class="max-w-3xl mx-auto space-y-8">
 
-    <!-- 1. صندوق الوارد (الرسائل المستلمة) -->
+    <!-- 1. صندوق الوارد (الرسائل المستلمة - بدون زر حذف منفرد) -->
     <div class="glass-panel p-6 sm:p-8 border border-pink-500/30">
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-xl font-bold text-pink-400 flex items-center gap-2">
@@ -39,7 +39,7 @@
             <div>
                 <label class="block text-xs text-gray-300 font-semibold mb-1">معرف الرابط (Slug) بالإنجليزية بدون مسافات (مثال: mohamed):</label>
                 <input type="text" id="page-slug" placeholder="mok" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500 font-mono">
-                <input type="hidden" id="original-slug"> <!-- لحفظ المعرف القديم في حالة التعديل -->
+                <input type="hidden" id="original-slug">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -109,7 +109,6 @@
 
             let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
 
-            // لو المستخدم غير الـ Slug أثناء التعديل، نمسح القديم ونعمل جديد
             if (originalSlug && originalSlug !== slug) {
                 delete db[originalSlug];
             }
@@ -164,7 +163,7 @@
 
             const page = db[slug];
             document.getElementById('page-slug').value = slug;
-            document.getElementById('original-slug').value = slug; // نخزن القيمة القديمة هنا
+            document.getElementById('original-slug').value = slug;
             document.getElementById('page-name').value = page.name;
             document.getElementById('page-password').value = page.password;
             document.getElementById('page-image').value = page.imageUrl || '';
@@ -221,18 +220,10 @@
                     <p class="text-gray-200 font-medium bg-black/20 p-3 rounded-xl border border-white/5">${msg.text}</p>
                     <div class="flex items-center justify-between text-xs text-gray-400 pt-1">
                         <span><i class="fas fa-globe text-purple-400"></i> الآي بي: <span class="font-mono text-white">${msg.ip}</span> | الموقع: <span class="text-white">${msg.location}</span></span>
-                        <button onclick="deleteSingleMessage(${msg.id})" class="text-red-400 hover:text-red-300 font-semibold"><i class="fas fa-trash-alt"></i> حذف</button>
                     </div>
                 `;
                 inboxContainer.appendChild(card);
             });
-        }
-
-        function deleteSingleMessage(id) {
-            let inbox = JSON.parse(localStorage.getItem('secret_inbox_messages')) || [];
-            inbox = inbox.filter(m => m.id !== id);
-            localStorage.setItem('secret_inbox_messages', JSON.stringify(inbox));
-            loadInbox();
         }
 
         function clearInbox() {
