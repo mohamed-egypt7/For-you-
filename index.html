@@ -4,23 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>رسالة سرية</title>
+    <!-- استدعاء خطوط جوجل وأيقونات -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --box-bg: #21262d;
-            --text-main: #ffffff;
-            --text-muted: #8b949e;
-            --pink-accent: #ff4d85;
-            --gradient-btn: linear-gradient(270deg, #b026ff, #ff1a8b);
+        * {
+            box-sizing: border-box;
         }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: #0b0f14; /* لون الخلفية الغامق زي الصورة */
+            color: #ffffff;
             font-family: 'Tajawal', sans-serif;
             display: flex;
             justify-content: center;
@@ -29,19 +23,17 @@
             margin: 0;
             padding: 20px;
         }
-
-        .container {
-            background-color: var(--card-bg);
+        .card {
+            background-color: #171b23; /* لون المربع نفسه */
             border-radius: 20px;
-            padding: 30px 20px;
+            padding: 30px 25px;
             width: 100%;
             max-width: 400px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
         }
-
-        .icon-top {
-            background: linear-gradient(135deg, #ff758c 10%, #ff7eb3 100%);
+        .heart-box {
+            background: linear-gradient(135deg, #ff7eb3 0%, #ff758c 100%);
             width: 70px;
             height: 70px;
             border-radius: 20px;
@@ -49,52 +41,53 @@
             justify-content: center;
             align-items: center;
             margin: 0 auto 20px;
-            font-size: 30px;
-            box-shadow: 0 5px 15px rgba(255, 117, 140, 0.4);
+            font-size: 32px;
+            box-shadow: 0 5px 15px rgba(255, 117, 140, 0.3);
         }
-
         h2 {
             margin: 0;
-            font-size: 24px;
-            color: var(--pink-accent);
+            font-size: 26px;
+            color: #ff758c; /* لون رقم 4 */
+            font-weight: 700;
         }
-
         h2 span {
-            color: var(--text-main);
+            color: #ffffff; /* لون كلمة رسالة إلى */
         }
-
         .subtitle {
-            color: var(--text-muted);
+            color: #8b949e;
             font-size: 14px;
             margin-top: 5px;
             margin-bottom: 25px;
         }
-
         .quote-box {
-            background-color: var(--box-bg);
+            background-color: #21262d;
             border-radius: 15px;
-            padding: 20px;
+            padding: 25px 20px;
             position: relative;
             margin-bottom: 25px;
         }
-
         .quote-box p {
             margin: 0;
             font-size: 15px;
             line-height: 1.6;
+            color: #e6edf3;
         }
-
-        .fa-quote-right, .fa-quote-left {
-            color: rgba(255, 77, 133, 0.2);
-            font-size: 20px;
+        .fa-quote-right {
             position: absolute;
+            top: 15px;
+            right: 15px;
+            color: rgba(255, 117, 140, 0.15);
+            font-size: 20px;
         }
-        
-        .fa-quote-right { top: 10px; right: 15px; }
-        .fa-quote-left { bottom: 10px; left: 15px; }
-
+        .fa-quote-left {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            color: rgba(255, 117, 140, 0.15);
+            font-size: 20px;
+        }
         .music-player {
-            background-color: var(--box-bg);
+            background-color: #21262d;
             border-radius: 15px;
             padding: 15px;
             display: flex;
@@ -102,85 +95,75 @@
             justify-content: space-between;
             margin-bottom: 25px;
         }
-
         .play-btn {
-            background-color: var(--pink-accent);
+            background-color: #ff3366;
             color: white;
             border: none;
             border-radius: 20px;
-            padding: 8px 20px;
+            padding: 8px 18px;
             font-family: inherit;
-            cursor: pointer;
+            font-size: 14px;
             font-weight: bold;
+            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
         .music-info {
             text-align: right;
             flex-grow: 1;
             margin-right: 15px;
         }
-
-        .music-info p {
-            margin: 0;
-        }
-
         .music-info .title {
             font-weight: bold;
-            font-size: 15px;
+            font-size: 14px;
+            margin: 0 0 3px 0;
+            color: #ffffff;
         }
-
         .music-info .desc {
-            color: var(--text-muted);
+            color: #8b949e;
             font-size: 12px;
+            margin: 0;
         }
-
-        .music-icon-box {
-            background-color: rgba(255, 255, 255, 0.1);
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+        .music-icon {
+            background-color: rgba(255, 255, 255, 0.05);
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: var(--pink-accent);
+            color: #ff758c;
+            font-size: 20px;
         }
-
         .reply-section {
             text-align: right;
         }
-
         .reply-section label {
-            font-size: 14px;
-            color: var(--text-main);
+            font-size: 13px;
+            color: #ffffff;
             display: block;
             margin-bottom: 10px;
         }
-
         textarea {
             width: 100%;
-            background-color: var(--box-bg);
+            background-color: #21262d;
             border: 1px solid #30363d;
             border-radius: 15px;
             padding: 15px;
-            color: var(--text-main);
+            color: #ffffff;
             font-family: inherit;
             font-size: 14px;
             resize: none;
-            height: 80px;
-            box-sizing: border-box;
+            height: 90px;
             margin-bottom: 15px;
         }
-        
         textarea:focus {
             outline: none;
-            border-color: var(--pink-accent);
+            border-color: #ff758c;
         }
-
         .send-btn {
-            background: var(--gradient-btn);
+            background: linear-gradient(270deg, #b026ff, #ff1a8b); /* تدرج اللون الموف للبينك */
             color: white;
             border: none;
             border-radius: 15px;
@@ -194,41 +177,44 @@
             justify-content: center;
             align-items: center;
             gap: 10px;
-            transition: opacity 0.3s;
-        }
-
-        .send-btn:hover {
-            opacity: 0.9;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="icon-top">
+    <div class="card">
+        <!-- الأيقونة العلوية -->
+        <div class="heart-box">
             <i class="fa-solid fa-heart" style="color: white;"></i>
         </div>
 
-        <h2 id="page-title">رسالة إلى: <span>تحميل...</span></h2>
+        <!-- العنوان -->
+        <h2><span>رسالة إلى:</span> 4</h2>
         <p class="subtitle">رسالة سرية مخصصة</p>
 
+        <!-- الاقتباس -->
         <div class="quote-box">
             <i class="fa-solid fa-quote-right"></i>
             <p>أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك بناءً على طلب شخص يود إسعادك.</p>
             <i class="fa-solid fa-quote-left"></i>
         </div>
 
+        <!-- مشغل الموسيقى الفعلي -->
+        <!-- تقدر تغير الرابط اللي في src برابط أي أغنية mp3 انت عايزها -->
+        <audio id="myAudio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+        
         <div class="music-player">
             <button class="play-btn" id="playBtn"><i class="fa-solid fa-play"></i> تشغيل</button>
             <div class="music-info">
                 <p class="title">مقطوعة هادئة</p>
                 <p class="desc">موسيقى استرخاء</p>
             </div>
-            <div class="music-icon-box">
+            <div class="music-icon">
                 <i class="fa-solid fa-music"></i>
             </div>
         </div>
 
+        <!-- قسم الرد -->
         <div class="reply-section">
             <label>رد على المرسل (بشكل مجهول):</label>
             <textarea id="replyMsg" placeholder="اكتب ردك هنا..."></textarea>
@@ -239,15 +225,21 @@
     </div>
 
     <script>
-        // قراءة رقم المستخدم أو الـ ID من الرابط (مثلاً ?to=4 أو #4)
-        const urlParams = new URLSearchParams(window.location.search);
-        let userKey = urlParams.get('to');
-        if (!userKey) {
-            userKey = window.location.hash.substring(1) || "شخص ما";
-        }
-        document.getElementById('page-title').innerHTML = `رسالة إلى: <span>${userKey}</span>`;
+        // كود تشغيل وإيقاف الأغنية
+        const audio = document.getElementById("myAudio");
+        const playBtn = document.getElementById("playBtn");
+        
+        playBtn.addEventListener("click", function() {
+            if (audio.paused) {
+                audio.play();
+                playBtn.innerHTML = '<i class="fa-solid fa-pause"></i> إيقاف';
+            } else {
+                audio.pause();
+                playBtn.innerHTML = '<i class="fa-solid fa-play"></i> تشغيل';
+            }
+        });
 
-        // بيانات بوت التليجرام الخاص بك المدمجة تلقائياً
+        // كود إرسال الرسالة لتليجرام بنفس بياناتك
         const botToken = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU';
         const chatId = '8718173410';
 
@@ -259,7 +251,7 @@
                 return;
             }
 
-            const textToTelegram = `💌 رد جديد من صفحة (${userKey}):\n\n${message}`;
+            const textToTelegram = `💌 رد جديد من صفحة (رقم 4):\n\n${message}`;
             const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
             fetch(url, {
