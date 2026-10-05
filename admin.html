@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم السحابية - جيت هاب</title>
+    <title>لوحة التحكم السحابية</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -17,22 +17,21 @@
     <div class="glass-panel p-8 w-full space-y-6">
         <div class="text-center">
             <h1 class="text-2xl font-bold text-pink-400">لوحة التحكم السحابية</h1>
-            <p class="text-xs text-gray-400 mt-1">أضف أي شخص وسيتم حفظه على جيت هاب مباشرة للجميع</p>
+            <p class="text-xs text-gray-400 mt-1">إعدادات جيت هاب (تُحفظ مرة واحدة فقط)</p>
         </div>
 
-        <!-- إعدادات جيت هاب (تُدخل مرة واحدة فقط) -->
-        <div class="bg-white/5 p-4 rounded-xl border border-white/10 space-y-3">
-            <h3 class="text-xs font-bold text-pink-300">إعدادات الربط بجيت هاب (مرة واحدة):</h3>
-            <input type="text" id="gh-owner" placeholder="اسمك على جيت هاب (Username)" class="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-xs text-white">
-            <input type="text" id="gh-repo" placeholder="اسم المستودع (Repository Name)" class="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-xs text-white">
-            <input type="password" id="gh-token" placeholder="GitHub Personal Access Token" class="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-xs text-white">
-            <button onclick="saveSettings()" class="w-full bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 rounded-lg transition">حفظ الإعدادات</button>
+        <!-- إعدادات جيت هاب -->
+        <div class="bg-black/30 p-4 rounded-xl border border-white/10 space-y-3">
+            <input type="text" id="gh-owner" placeholder="اسم المستخدم (مثال: mohamed-egypt7)" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white">
+            <input type="text" id="gh-repo" placeholder="اسم الريبو (مثال: For-you-)" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white">
+            <input type="password" id="gh-token" placeholder="GitHub Token" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white">
+            <button onclick="saveSettings()" class="w-full bg-pink-600/80 hover:bg-pink-600 text-white font-bold py-2 rounded-lg text-xs transition">حفظ الإعدادات في المتصفح</button>
         </div>
 
         <!-- نموذج إضافة صفحة جديدة -->
         <div class="space-y-4 pt-2">
             <div>
-                <label class="block text-xs text-pink-300 font-semibold mb-1">معرف الرابط (Slug بالإنجليزية مثل: sara, ahmed):</label>
+                <label class="block text-xs text-pink-300 font-semibold mb-1">معرف الرابط (Slug بالإنجليزية مثل: sara):</label>
                 <input type="text" id="page-slug" placeholder="مثال: sara" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm">
             </div>
 
@@ -69,22 +68,22 @@
 
     <script>
         window.onload = function() {
-            document.getElementById('gh-owner').value = localStorage.getItem('gh_owner') || '';
-            document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';
-            document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
+            if(localStorage.getItem('gh_owner')) document.getElementById('gh-owner').value = localStorage.getItem('gh_owner');
+            if(localStorage.getItem('gh_repo')) document.getElementById('gh-repo').value = localStorage.getItem('gh_repo');
+            if(localStorage.getItem('gh_token')) document.getElementById('gh-token').value = localStorage.getItem('gh_token');
         };
 
         function saveSettings() {
             localStorage.setItem('gh_owner', document.getElementById('gh-owner').value.trim());
             localStorage.setItem('gh_repo', document.getElementById('gh-repo').value.trim());
-            localStorage.setItem('gh_token', document.getElementById('gh_token').value.trim());
-            alert("تم حفظ إعدادات جيت هاب بنجاح!");
+            localStorage.setItem('gh_token', document.getElementById('gh-token').value.trim());
+            alert("تم حفظ الإعدادات بنجاح!");
         }
 
         async function createNewPage() {
-            const owner = localStorage.getItem('gh_owner');
-            const repo = localStorage.getItem('gh_repo');
-            const token = localStorage.getItem('gh_token');
+            const owner = localStorage.getItem('gh_owner') || document.getElementById('gh-owner').value.trim();
+            const repo = localStorage.getItem('gh_repo') || document.getElementById('gh-repo').value.trim();
+            const token = localStorage.getItem('gh_token') || document.getElementById('gh-token').value.trim();
 
             if (!owner || !repo || !token) {
                 alert("يرجى إدخال وحفظ إعدادات جيت هاب أولاً بالأعلى.");
@@ -105,7 +104,6 @@
             const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/db.json`;
 
             try {
-                // 1. جلب ملف db.json الحالي من المستودع
                 let fileSha = '';
                 let dbData = {};
 
@@ -116,19 +114,15 @@
                 if (res.ok) {
                     const fileInfo = await res.json();
                     fileSha = fileInfo.sha;
-                    // فك تشفير المحتوى الحالي
                     const decodedContent = decodeURIComponent(escape(atob(fileInfo.content)));
                     dbData = JSON.parse(decodedContent);
                 }
 
-                // 2. إضافة الشخص الجديد للقاعدة
                 dbData[slug] = { name, password, message, songUrl };
 
-                // 3. تحويل الداتا لـ Base64 لرفعها لجيت هاب
                 const jsonString = JSON.stringify(dbData, null, 2);
                 const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
 
-                // 4. إرسال التحديث لـ جيت هاب
                 const updateRes = await fetch(apiUrl, {
                     method: 'PUT',
                     headers: {
@@ -150,7 +144,7 @@
                     alert("تم إنشاء الصفحة ورفعها على جيت هاب بنجاح تام!");
                 } else {
                     const errData = await updateRes.json();
-                    alert("فشل الرفع لجيت هاب: " + (errData.message || "تأكد من صحة التوكن واسم المستودع"));
+                    alert("فشل الرفع لجيت هاب: " + (errData.message || "خطأ في الاتصال"));
                 }
             } catch (e) {
                 alert("حدث خطأ في الاتصال: " + e.message);
