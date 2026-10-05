@@ -68,10 +68,13 @@ def main_menu():
   btn_list = types.InlineKeyboardButton(
       '📋 عرض كل الرسائل', callback_data='btn_list'
   )
+  btn_edit = types.InlineKeyboardButton(
+      '✏️ تعديل رسالة سابقة', callback_data='btn_edit_menu'
+  )
   btn_del = types.InlineKeyboardButton(
       '🗑️ حذف رسالة', callback_data='btn_del_menu'
   )
-  markup.add(btn_add, btn_list, btn_del)
+  markup.add(btn_add, btn_list, btn_edit, btn_del)
   return markup
 
 
@@ -94,7 +97,7 @@ def callback_add(call):
   temp_data[chat_id] = {}
   bot.answer_callback_query(call.id)
   bot.send_message(
-      chat_id, '1️⃣ أرسل **اسم الشخص** (رسالة إلى مين، مثل: محمد):'
+      chat_id, '1️⃣ أرسل **اسم الشخص** (رسالة إلى مين، مثل: سارة):'
   )
 
 
@@ -111,12 +114,14 @@ def callback_list(call):
   for slug, info in db_data.items():
     name = info.get('name', slug)
     pwd = info.get('password', '1234')
+    msg = info.get('message', '')
+    song_title = info.get('song_title', 'مقطوعة')
     page_link = (
         f'https://{REPO_OWNER}.github.io/{REPO_NAME}/index.html?to={slug}'
     )
     text += (
-        f'👤 الاسم: {name}\n🔑 الباسورد: {pwd}\n🔗 الرابط:'
-        f' {page_link}\n------------------\n'
+        f'👤 الاسم: {name} (الرابط: {slug})\n🔑 الباسورد: {pwd}\n💬 الرسالة:'
+        f' {msg}\n🎵 الأغنية: {song_title}\n🔗 الرابط: {page_link}\n------------------\n'
     )
 
   markup = types.InlineKeyboardMarkup()
@@ -126,6 +131,53 @@ def callback_list(call):
   bot.send_message(chat_id, text, reply_markup=markup)
 
 
+# --- قسم تعديل الرسائل ---
+@bot.callback_query_handler(func=lambda call: call.data == 'btn_edit_menu')
+def callback_edit_menu(call):
+  chat_id = call.message.chat.id
+  bot.answer_callback_query(call.id)
+  db_data, _ = get_db()
+  if not db_data:
+    bot.send_message(chat_id, '📭 لا توجد رسائل لتعديلها.')
+    return
+
+  markup = types.InlineKeyboardMarkup(row_width=1)
+  for slug, info in db_data.items():
+    disp_name = info.get('name', slug)
+    markup.add(
+        types.InlineKeyboardButton(
+            f'✏️ تعديل: {disp_name} ({slug})', callback_data=f'edit_{slug}'
+        )
+    )
+  markup.add(
+      types.InlineKeyboardButton('🔙 القائمة الرئيسية', callback_data='main_menu')
+  )
+  bot.send_message(
+      chat_id, '🛠️ اختر الرسالة التي تريد تعديلها:', reply_markup=markup
+  )
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('edit_'))
+def callback_select_edit(call):
+  chat_id = call.message.chat.id
+  slug = call.data.replace('edit_', '', 1)
+  bot.answer_callback_query(call.id)
+
+  db_data, _ = get_db()
+  if slug in db_data:
+    temp_data[chat_id] = {'editing_slug': slug}
+    user_steps[chat_id] = 'edit_waiting_for_name'
+    current_info = db_data[slug]
+    bot.send_message(
+        chat_id,
+        f'📝 جارٍ تعديل الرسالة لـ ({current_info.get("name", slug)}).\n\n1️⃣'
+        ' أرسل **اسم الشخص الجديد** (أو اكتب `.` للإبقاء عليه كما هو):',
+    )
+  else:
+    bot.send_message(chat_id, '⚠️ هذه الرسالة غير موجودة.')
+
+
+# --- قسم الحذف ---
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_del_menu')
 def callback_del_menu(call):
   chat_id = call.message.chat.id
@@ -168,9 +220,7 @@ def callback_execute_delete(call):
               '🔙 القائمة الرئيسية', callback_data='main_menu'
           )
       )
-      bot.send_message(
-          chat_id, f'✅ تم الحذف بنجاح!', reply_markup=markup
-      )
+      bot.send_message(chat_id, f'✅ تم الحذف بنجاح!', reply_markup=markup)
     else:
       bot.send_message(chat_id, '❌ فشل التحديث على جيت هاب.')
   else:
@@ -184,6 +234,7 @@ def callback_main_menu(call):
   bot.send_message(chat_id, '🏠 القائمة الرئيسية:', reply_markup=main_menu())
 
 
+# --- معالجة الخطوات (إضافة وتعديل) ---
 @bot.message_handler(
     func=lambda m: str(m.chat.id) == str(ADMIN_CHAT_ID)
     and m.chat.id in user_steps
@@ -192,12 +243,74 @@ def handle_steps(message):
   chat_id = message.chat.id
   step = user_steps.get(chat_id)
   text = message.text.strip()
+  db_data, sha = get_db()
+  if not db_data:
+    db_data = {}
 
-  if step == 'waiting_for_name':
+  # --- خطوات التعديل ---
+  if step == 'edit_waiting_for_name':
+    slug = temp_data[chat_id]['editing_slug']
+    if text != '.':
+      db_data[slug]['name'] = text
+    user_steps[chat_id] = 'edit_waiting_for_pass'
+    bot.reply_to(
+        message, '2️⃣ أرسل **كلمة المرور الجديدة** (أو اكتب `.` للإبقاء عليها):'
+    )
+
+  elif step == 'edit_waiting_for_pass':
+    slug = temp_data[chat_id]['editing_slug']
+    if text != '.':
+      db_data[slug]['password'] = text
+    user_steps[chat_id] = 'edit_waiting_for_msg'
+    bot.reply_to(
+        message, '3️⃣ أرسل **نص الرسالة الجديد** (أو اكتب `.` للإبقاء عليه):'
+    )
+
+  elif step == 'edit_waiting_for_msg':
+    slug = temp_data[chat_id]['editing_slug']
+    if text != '.':
+      db_data[slug]['message'] = text
+    user_steps[chat_id] = 'edit_waiting_for_song_title'
+    bot.reply_to(
+        message, '4️⃣ أرسل **عنوان الأغنية الجديد** (أو اكتب `.` للإبقاء عليه):'
+    )
+
+  elif step == 'edit_waiting_for_song_title':
+    slug = temp_data[chat_id]['editing_slug']
+    if text != '.':
+      db_data[slug]['song_title'] = text
+    user_steps[chat_id] = 'edit_waiting_for_song_link'
+    bot.reply_to(
+        message, '5️⃣ أرسل **رابط الأغنية المباشر الجديد** (أو اكتب `.` للإبقاء عليه):'
+    )
+
+  elif step == 'edit_waiting_for_song_link':
+    slug = temp_data[chat_id]['editing_slug']
+    if text != '.':
+      db_data[slug]['song_link'] = text
+    del user_steps[chat_id]
+    del temp_data[chat_id]
+
+    success = update_db(db_data, sha, f'Update message {slug}')
+    markup = types.InlineKeyboardMarkup()
+    markup.add(
+        types.InlineKeyboardButton(
+            '🔙 القائمة الرئيسية', callback_data='main_menu'
+        )
+    )
+    if success:
+      bot.send_message(
+          chat_id, f'✅ تم تعديل الرسالة ({slug}) وتحديث الموقع بنجاح!', reply_markup=markup
+      )
+    else:
+      bot.send_message(chat_id, '❌ حدث خطأ أثناء التحديث.', reply_markup=markup)
+
+  # --- خطوات الإضافة الجديدة ---
+  elif step == 'waiting_for_name':
     temp_data[chat_id]['name'] = text
     user_steps[chat_id] = 'waiting_for_slug'
     bot.reply_to(
-        message, '2️⃣ أرسل **الاسم في الرابط** (مثال: `first` أو `mohamed`):'
+        message, '2️⃣ أرسل **الاسم في الرابط** (مثال: `first` أو `sara`):'
     )
 
   elif step == 'waiting_for_slug':
@@ -214,24 +327,24 @@ def handle_steps(message):
 
   elif step == 'waiting_for_msg':
     temp_data[chat_id]['custom_message'] = text
-    user_steps[chat_id] = 'waiting_for_song'
-    bot.reply_to(
-        message, '5️⃣ أرسل **رابط الأغنية المباشر** (أو اكتب `لا`):'
-    )
+    user_steps[chat_id] = 'waiting_for_song_title'
+    bot.reply_to(message, '5️⃣ أرسل **عنوان الأغنية** (مثال: أغنية هادئة):')
 
-  elif step == 'waiting_for_song':
+  elif step == 'waiting_for_song_title':
+    temp_data[chat_id]['song_title'] = text
+    user_steps[chat_id] = 'waiting_for_song_link'
+    bot.reply_to(message, '6️⃣ أرسل **رابط الأغنية المباشر (MP3)**:')
+
+  elif step == 'waiting_for_song_link':
     song_link = '' if text.lower() in ['لا', 'no'] else text
     name = temp_data[chat_id]['name']
     slug = temp_data[chat_id]['slug']
     password = temp_data[chat_id]['password']
     custom_msg = temp_data[chat_id]['custom_message']
+    song_title = temp_data[chat_id]['song_title']
     del user_steps[chat_id]
 
     bot.reply_to(message, '⏳ جاري رفع البيانات وتحديث الموقع...')
-
-    db_data, sha = get_db()
-    if not db_data:
-      db_data = {}
 
     page_link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/index.html?to={slug}'
 
@@ -240,6 +353,7 @@ def handle_steps(message):
         'slug': slug,
         'password': password,
         'message': custom_msg,
+        'song_title': song_title,
         'song_link': song_link,
         'link': page_link,
     }
@@ -255,8 +369,8 @@ def handle_steps(message):
       msg_text = (
           f'✅ تمت الإضافة وتحديث الموقع بنجاح!\n\n👤 لمن: {name}\n🔑'
           f' الباسورد: {password}\n🔗 الرابط المباشر:\n{page_link}\n💬'
-          f' الرسالة: {custom_msg}\n🎵 الأغنية:'
-          f' {song_link if song_link else "الافتراضية"}'
+          f' الرسالة: {custom_msg}\n🎵 عنوان الأغنية: {song_title}\n🔗 رابط'
+          f' الأغنية: {song_link}'
       )
       bot.send_message(chat_id, msg_text, reply_markup=markup)
     else:
@@ -264,5 +378,5 @@ def handle_steps(message):
 
 
 if __name__ == '__main__':
-  print('Bot is running successfully...')
+  print('Bot is running successfully with edit feature...')
   bot.infinity_polling()
