@@ -100,7 +100,7 @@ def callback_add(call):
   )
 
 
-# زر عرض المستخدمين
+# زر عرض المستخدمين مع روابطهم المتولدة
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_list')
 def callback_list(call):
   chat_id = call.message.chat.id
@@ -113,14 +113,22 @@ def callback_list(call):
   text = '📋 **قائمة المستخدمين المسجلين:**\n\n'
   for name, info in db_data.items():
     pwd = info.get('password', '')
-    lnk = info.get('link', 'لا يوجد')
-    text += f'👤 **الاسم:** `{name}`\n🔑 **الباسورد:** `{pwd}`\n🔗 **الرابط:** {lnk}\n------------------\n'
+    lnk = info.get(
+        'link', f'https://{REPO_OWNER}.github.io/{REPO_NAME}/#{name}'
+    )
+    text += f'👤 **الاسم:** `{name}`\n🔑 **الباسورد:** `{pwd}`\n🔗 **الرابط:** [اضغط هنا لفتح الصفحة]({lnk})\n------------------\n'
 
   markup = types.InlineKeyboardMarkup()
   markup.add(
       types.InlineKeyboardButton('🔙 القائمة الرئيسية', callback_data='main_menu')
   )
-  bot.send_message(chat_id, text, parse_mode='Markdown', reply_markup=markup)
+  bot.send_message(
+      chat_id,
+      text,
+      parse_mode='Markdown',
+      reply_markup=markup,
+      disable_web_page_preview=True,
+  )
 
 
 # زر قائمة الحذف
@@ -184,7 +192,7 @@ def callback_execute_delete(call):
     bot.send_message(chat_id, '⚠️ المستخدم غير موجود بالفعل.')
 
 
-# الرجوع للقائمة الرئيسية عبر الأزرار
+# الرجوع للقائمة الرئيسية
 @bot.callback_query_handler(func=lambda call: call.data == 'main_menu')
 def callback_main_menu(call):
   chat_id = call.message.chat.id
@@ -194,7 +202,7 @@ def callback_main_menu(call):
   )
 
 
-# خطوات إضافة المستخدم
+# خطوات إضافة المستخدم (تم اختصارها لطلب الاسم والباسورد فقط وتوليد الرابط تلقائياً)
 @bot.message_handler(
     func=lambda m: str(m.chat.id) == str(ADMIN_CHAT_ID)
     and m.chat.id in user_steps
@@ -212,66 +220,52 @@ def handle_steps(message):
     )
 
   elif step == 'waiting_for_pass':
-    temp_data[chat_id]['password'] = text
-    user_steps[chat_id] = 'waiting_for_link'
-    bot.reply_to(
-        message,
-        '🔗 رائع! أرسل الآن **الرابط** (أو اكتب `لا` لو مفيش):',
-        parse_mode='Markdown',
-    )
-
-  elif step == 'waiting_for_link':
-    link = '' if text.lower() == 'لا' else text
-    temp_data[chat_id]['link'] = link
-
+    password = text
     name = temp_data[chat_id]['name']
-    password = temp_data[chat_id]['password']
 
+    # تنظيف الحالة
     del user_steps[chat_id]
+
+    # توليد الرابط تلقائياً بناءً على اسم المستخدم والموقع
+    link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/#{name}'
 
     bot.reply_to(message, '⏳ جاري رفع البيانات وتحديث جيت هاب، ثواني...')
 
-    db_data, sha = get_db()
-    if not db_data:
-      db_data = {}
+  # توليد الرابط ودعم الخطوة بشكل نهائي
+  db_data, sha = get_db()
+  if not db_data:
+    db_data = {}
 
-    db_data[name] = {'password': password, 'link': link}
+  db_data[name] = {'password': password, 'link': link}
 
-    success = update_db(db_data, sha, f'Add {name} via Button Bot')
-    if success:
-      markup = types.InlineKeyboardMarkup()
-      markup.add(
-          types.InlineKeyboardButton(
-              '🔙 القائمة الرئيسية', callback_data='main_menu'
-          )
-      )
+  success = update_db(db_data, sha, f'Add {name} via Button Bot')
+  if success:
+    markup = types.InlineKeyboardMarkup()
+    markup.add(
+        types.InlineKeyboardButton(
+            '🔙 القائمة الرئيسية', callback_data='main_menu'
+        )
+    )
 
-      # عرض الرابط بشكل مباشر وقابل للضغط إن وُجد
-      link_display = (
-          f'[اضغط هنا لفتح الصفحة]({link})' if link.startswith('http') else link
-      )
-      if not link_display:
-        link_display = 'لا يوجد'
-
-      msg_text = (
-          f'✅ تمت الإضافة بنجاح وتحديث الموقع!\n\n'
-          f'👤 الاسم: `{name}`\n'
-          f'🔑 الباسورد: `{password}`\n'
-          f'🔗 الرابط: {link_display}'
-      )
-      bot.send_message(
-          chat_id,
-          msg_text,
-          parse_mode='Markdown',
-          reply_markup=markup,
-          disable_web_page_preview=False,
-      )
-    else:
-      bot.send_message(
-          chat_id, '❌ فشل التحديث على جيت هاب، تأكد من صحة الصلاحيات.'
-      )
+    msg_text = (
+        f'✅ تمت الإضافة وتوليد الرابط بنجاح!\n\n'
+        f'👤 الاسم: `{name}`\n'
+        f'🔑 الباسورد: `{password}`\n'
+        f'🔗 الرابط المتولد: [اضغط هنا لفتح الصفحة]({link})'
+    )
+    bot.send_message(
+        chat_id,
+        msg_text,
+        parse_mode='Markdown',
+        reply_markup=markup,
+        disable_web_page_preview=True,
+    )
+  else:
+    bot.send_message(
+        chat_id, '❌ فشل التحديث على جيت هاب، تأكد من صحة الصلاحيات.'
+    )
 
 
 if __name__ == '__main__':
-  print('Bot with full control panel is running...')
+  print('Bot with auto-link generator is running...')
   bot.infinity_polling()
