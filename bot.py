@@ -1,5 +1,4 @@
 import json
-import os
 import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
@@ -8,38 +7,8 @@ from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filte
 BOT_TOKEN = "8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU"
 ADMIN_CHAT_ID = "8718173410"
 
-# بيانات جيت هاب لرفع التحديثات أوتوماتيك (تأكد من وضع بياناتك الصحيحة هنا)
-GITHUB_TOKEN = "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"  # توكن جيت هاب الخاص بك
-REPO_OWNER = "YOUR_GITHUB_USERNAME"                # اسم حسابك على جيت هاب
-REPO_NAME = "YOUR_REPO_NAME"                      # اسم المستودع (Repository)
-FILE_PATH = "db.json"                             # مسار ملف الجي سون في المشروع
-
-def update_github_json(visitor_id, admin_message):
-    try:
-        # جلب الملف الحالي من جيت هاب
-        url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}"
-        headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-        r = requests.get(url, headers=headers)
-        
-        file_data = r.json()
-        sha = file_data.get("sha")
-        content = json.loads(requests.get(file_data["download_url"]).text) if r.status_code == 200 else {}
-        
-        # إضافة الرد الجديد الخاص بالزائر
-        content[visitor_id] = admin_message
-        
-        # رفع الملف المحدث لـ جيت هاب
-        import base64
-        new_content = base64.b64encode(json.dumps(content, ensure_ascii=False, indent=4).encode('utf-8')).decode('utf-8')
-        
-        data = {
-            "message": f"Update reply for visitor {visitor_id}",
-            "content": new_content,
-            "sha": sha
-        }
-        requests.put(url, headers=headers, json=data)
-    except Exception as e:
-        print(f"Error updating GitHub: {e}")
+# رابط الـ Web App الخاص بجوجل شيت اللي لسه مطلعينه
+GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxAPL-k0nOCQugrFW0u8WaudCjftB5_qtQroUn03QbNHp0wdzvYopdnFZP3CUroTdvfRA/exec"
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
@@ -51,23 +20,35 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         original_text = message.reply_to_message.text
         admin_reply = message.text
 
-        # استخراج معرف الزائر أو الـ IP من نص الرسالة الأصلية التي وصلت لك
-        # (نفترض أن رسالة الزائر الأصلية كانت تحتوي على معرّف أو IP في السطر الأول)
-        visitor_id = "default_user"
+        # استخراج الـ IP الخاص بالزائر من النص القديم للرسالة اللي وصلت لك
+        visitor_ip = None
         for line in original_text.split('\n'):
-            if "IP" in line or "ID" in line or "الزائر" in line:
-                visitor_id = line.split(":")[-1].strip()
+            if "IP:" in line:
+                visitor_ip = line.split(":")[-1].strip()
                 break
 
-        # تحديث ملف الـ JSON أوتوماتيك
-        update_github_json(visitor_id, admin_reply)
-        
-        await message.reply_text(f"✅ تم إرسال الرد للزائر بنجاح:\n{admin_reply}")
+        if visitor_ip:
+            # إرسال الرد لجوجل شيت أوتوماتيك
+            try:
+                payload = {
+                    "ip": visitor_ip,
+                    "message": "admin_reply", # علامة عشان السكريبت يعرف إنه رد أدمن
+                    "reply": admin_reply
+                }
+                # بما أن جوجل شيت بيقبل POST، هنعدل تعديل بسيط أو نبعت للـ doGet/doPost
+                # هبسطهالك: هنبعت بطلب لجوجل شيت يupate الرد مباشرة
+                requests.post(GOOGLE_SCRIPT_URL, json=payload)
+                
+                await message.reply_text(f"✅ تم إرسال الرد للزائر بنجاح:\n{admin_reply}")
+            except Exception as e:
+                await message.reply_text(f"❌ حدث خطأ أثناء الإرسال لجوجل شيت: {e}")
+        else:
+            await message.reply_text("⚠️ لم يتم التعرف على IP الزائر في هذه الرسالة.")
 
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-    print("🤖 البوت يعمل الآن ويراقب الردود ويحدث GitHub...")
+    print("🤖 بوت تليجرام يعمل الآن ومربوط بـ Google Sheets...")
     await app.run_polling()
 
 if __name__ == "__main__":
