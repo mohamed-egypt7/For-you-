@@ -4,14 +4,12 @@ import os
 import requests
 import telebot
 
-# بيانات البوت وشات آي دي الخاصة بك
+# بيانات البوت وشات آي دي الصحيحة الخاصة بك
 TOKEN = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU'
-ADMIN_CHAT_ID = '972616130'
+ADMIN_CHAT_ID = '8718173410'
 
-# بيانات جيت هاب لتحديث ملف db.json أوتوماتيك
-GITHUB_TOKEN = (  # ضع هنا توكن جيت هاب الخاص بك بصلاحية repo
-    'YOUR_GITHUB_TOKEN'
-)
+# بيانات جيت هاب (استبدل YOUR_GITHUB_TOKEN بتوكن جيت هاب الحقيقي الخاص بك)
+GITHUB_TOKEN = 'YOUR_GITHUB_TOKEN'
 REPO_OWNER = 'mohamed-egypt7'
 REPO_NAME = 'For-you-'
 FILE_PATH = 'db.json'
@@ -20,7 +18,9 @@ bot = telebot.TeleBot(TOKEN)
 
 
 def get_db_from_github():
-  url = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}'
+  url = (
+      f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}'
+  )
   headers = {'Authorization': f'token {GITHUB_TOKEN}'}
   r = requests.get(url, headers=headers)
   if r.status_code == 200:
@@ -31,7 +31,9 @@ def get_db_from_github():
 
 
 def update_db_on_github(data, sha, commit_message):
-  url = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}'
+  url = (
+      f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}'
+  )
   headers = {'Authorization': f'token {GITHUB_TOKEN}'}
   content_encoded = base64.b64encode(
       json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8')
@@ -48,8 +50,8 @@ def send_welcome(message):
     return
   bot.reply_to(
       message,
-      'أهلاً بك يا محمد! 🚀 بوت الإدارة الشغال 24/7 جاهز.\nلإضافة شخص أو'
-      ' بيانات جديدة استخدم الأمر:\n`/add الاسم كلمة_المرور الرابط`',
+      'أهلاً بك يا محمد! 🚀 بوت الإدارة جاهز.\nلإضافة مستخدم جديد استخدم'
+      ' الأمر:\n`/add الاسم كلمة_المرور الرابط`',
   )
 
 
@@ -75,9 +77,7 @@ def add_item(message):
 
     db_data[name] = {'password': password, 'link': link}
 
-    success = update_db_on_github(
-        db_data, sha, f'Add {name} via 24/7 Telegram Bot'
-    )
+    success = update_db_on_github(db_data, sha, f'Add {name} via Telegram Bot')
     if success:
       bot.reply_to(
           message,
@@ -87,7 +87,7 @@ def add_item(message):
     else:
       bot.reply_to(
           message,
-          '❌ فشل التحديث على جيت هاب، تأكد من صحة صلاحيات الـ GitHub Token.',
+          '❌ فشل التحديث على جيت هاب، تأكد من صلاحيات GitHub Token.',
       )
   except Exception as e:
     bot.reply_to(message, f'حدث خطأ: {e}')
