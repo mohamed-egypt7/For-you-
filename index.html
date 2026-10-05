@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رسالة سرية</title>
-    <!-- استدعاء خطوط جوجل وأيقونات -->
+    <title>تسجيل الدخول - رسالة سرية</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
-            background-color: #0b0f14; /* لون الخلفية الغامق زي الصورة */
+            background-color: #0b0f14;
             color: #ffffff;
             font-family: 'Tajawal', sans-serif;
             display: flex;
@@ -24,72 +21,94 @@
             padding: 20px;
         }
         .card {
-            background-color: #171b23; /* لون المربع نفسه */
+            background-color: #171b23;
             border-radius: 20px;
-            padding: 30px 25px;
+            padding: 35px 25px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
             text-align: center;
+            border: 1px solid #21262d;
         }
         .heart-box {
-            background: linear-gradient(135deg, #ff7eb3 0%, #ff758c 100%);
-            width: 70px;
-            height: 70px;
-            border-radius: 20px;
+            background: linear-gradient(135deg, #b026ff 0%, #ff1a8b 100%);
+            width: 75px;
+            height: 75px;
+            border-radius: 22px;
             display: flex;
             justify-content: center;
             align-items: center;
             margin: 0 auto 20px;
-            font-size: 32px;
-            box-shadow: 0 5px 15px rgba(255, 117, 140, 0.3);
+            font-size: 34px;
+            box-shadow: 0 8px 20px rgba(255, 26, 139, 0.35);
         }
         h2 {
-            margin: 0;
-            font-size: 26px;
-            color: #ff758c; /* لون رقم 4 */
-            font-weight: 700;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            color: #ffffff;
         }
-        h2 span {
-            color: #ffffff; /* لون كلمة رسالة إلى */
-        }
-        .subtitle {
+        p {
             color: #8b949e;
             font-size: 14px;
-            margin-top: 5px;
             margin-bottom: 25px;
         }
+        input[type="password"] {
+            width: 100%;
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 14px;
+            padding: 14px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="password"]:focus {
+            border-color: #ff4d85;
+        }
+        .btn {
+            background: linear-gradient(270deg, #b026ff 0%, #ff1a8b 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(176, 38, 255, 0.3);
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.92; }
+        .error {
+            color: #ff6b6b;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        /* تنسيق محتوى الرسالة والموسيقى بعد فتح الباسورد */
         .quote-box {
             background-color: #21262d;
-            border-radius: 15px;
-            padding: 25px 20px;
+            border-radius: 16px;
+            padding: 22px 20px;
             position: relative;
-            margin-bottom: 25px;
+            margin-bottom: 22px;
+            text-align: right;
         }
         .quote-box p {
             margin: 0;
-            font-size: 15px;
-            line-height: 1.6;
+            font-size: 14px;
+            line-height: 1.7;
             color: #e6edf3;
-        }
-        .fa-quote-right {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            color: rgba(255, 117, 140, 0.15);
-            font-size: 20px;
-        }
-        .fa-quote-left {
-            position: absolute;
-            bottom: 15px;
-            left: 15px;
-            color: rgba(255, 117, 140, 0.15);
-            font-size: 20px;
         }
         .music-player {
             background-color: #21262d;
-            border-radius: 15px;
-            padding: 15px;
+            border-radius: 16px;
+            padding: 14px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -97,187 +116,6 @@
         }
         .play-btn {
             background-color: #ff3366;
-            color: white;
+            color: #ffffff;
             border: none;
-            border-radius: 20px;
-            padding: 8px 18px;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .music-info {
-            text-align: right;
-            flex-grow: 1;
-            margin-right: 15px;
-        }
-        .music-info .title {
-            font-weight: bold;
-            font-size: 14px;
-            margin: 0 0 3px 0;
-            color: #ffffff;
-        }
-        .music-info .desc {
-            color: #8b949e;
-            font-size: 12px;
-            margin: 0;
-        }
-        .music-icon {
-            background-color: rgba(255, 255, 255, 0.05);
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #ff758c;
-            font-size: 20px;
-        }
-        .reply-section {
-            text-align: right;
-        }
-        .reply-section label {
-            font-size: 13px;
-            color: #ffffff;
-            display: block;
-            margin-bottom: 10px;
-        }
-        textarea {
-            width: 100%;
-            background-color: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 15px;
-            padding: 15px;
-            color: #ffffff;
-            font-family: inherit;
-            font-size: 14px;
-            resize: none;
-            height: 90px;
-            margin-bottom: 15px;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: #ff758c;
-        }
-        .send-btn {
-            background: linear-gradient(270deg, #b026ff, #ff1a8b); /* تدرج اللون الموف للبينك */
-            color: white;
-            border: none;
-            border-radius: 15px;
-            width: 100%;
-            padding: 15px;
-            font-size: 16px;
-            font-family: inherit;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="card">
-        <!-- الأيقونة العلوية -->
-        <div class="heart-box">
-            <i class="fa-solid fa-heart" style="color: white;"></i>
-        </div>
-
-        <!-- العنوان -->
-        <h2><span>رسالة إلى:</span> 4</h2>
-        <p class="subtitle">رسالة سرية مخصصة</p>
-
-        <!-- الاقتباس -->
-        <div class="quote-box">
-            <i class="fa-solid fa-quote-right"></i>
-            <p>أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك بناءً على طلب شخص يود إسعادك.</p>
-            <i class="fa-solid fa-quote-left"></i>
-        </div>
-
-        <!-- مشغل الموسيقى الفعلي -->
-        <!-- تقدر تغير الرابط اللي في src برابط أي أغنية mp3 انت عايزها -->
-        <audio id="myAudio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-        
-        <div class="music-player">
-            <button class="play-btn" id="playBtn"><i class="fa-solid fa-play"></i> تشغيل</button>
-            <div class="music-info">
-                <p class="title">مقطوعة هادئة</p>
-                <p class="desc">موسيقى استرخاء</p>
-            </div>
-            <div class="music-icon">
-                <i class="fa-solid fa-music"></i>
-            </div>
-        </div>
-
-        <!-- قسم الرد -->
-        <div class="reply-section">
-            <label>رد على المرسل (بشكل مجهول):</label>
-            <textarea id="replyMsg" placeholder="اكتب ردك هنا..."></textarea>
-            <button id="submitBtn" class="send-btn">
-                <i class="fa-solid fa-paper-plane"></i> إرسال الرد سراً
-            </button>
-        </div>
-    </div>
-
-    <script>
-        // كود تشغيل وإيقاف الأغنية
-        const audio = document.getElementById("myAudio");
-        const playBtn = document.getElementById("playBtn");
-        
-        playBtn.addEventListener("click", function() {
-            if (audio.paused) {
-                audio.play();
-                playBtn.innerHTML = '<i class="fa-solid fa-pause"></i> إيقاف';
-            } else {
-                audio.pause();
-                playBtn.innerHTML = '<i class="fa-solid fa-play"></i> تشغيل';
-            }
-        });
-
-        // كود إرسال الرسالة لتليجرام بنفس بياناتك
-        const botToken = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU';
-        const chatId = '8718173410';
-
-        document.getElementById('submitBtn').addEventListener('click', function() {
-            const message = document.getElementById('replyMsg').value;
-
-            if(message.trim() === '') {
-                alert('الرجاء كتابة رد أولاً!');
-                return;
-            }
-
-            const textToTelegram = `💌 رد جديد من صفحة (رقم 4):\n\n${message}`;
-            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: textToTelegram
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.ok) {
-                    alert('تم إرسال الرد سراً بنجاح! شكراً لك.');
-                    document.getElementById('replyMsg').value = '';
-                } else {
-                    alert('حدث خطأ أثناء الإرسال.');
-                }
-            })
-            .catch(error => {
-                alert('تأكد من اتصالك بالإنترنت.');
-            });
-        });
-    </script>
-
-</body>
-</html>
+            
