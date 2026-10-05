@@ -3,153 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم السحابية</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>لوحة التحكم - إدارة الروابط</title>
     <style>
-        body { font-family: 'Cairo', sans-serif; background: #070913; color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid #30363d;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #f0f6fc;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #8b949e;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            border-color: #58a6ff;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: opacity 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .status {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
     </style>
 </head>
-<body class="w-full max-w-lg mx-auto">
+<body>
 
-    <div class="glass-panel p-8 w-full space-y-6">
-        <div class="text-center">
-            <h1 class="text-2xl font-bold text-pink-400">لوحة التحكم السحابية</h1>
-            <p class="text-xs text-gray-400 mt-1">إعدادات جيت هاب (تُحفظ مرة واحدة فقط)</p>
-        </div>
-
-        <!-- إعدادات جيت هاب -->
-        <div class="bg-black/30 p-4 rounded-xl border border-white/10 space-y-3">
-            <input type="text" id="gh-owner" placeholder="اسم المستخدم (مثال: mohamed-egypt7)" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white">
-            <input type="text" id="gh-repo" placeholder="اسم الريبو (مثال: For-you-)" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white">
-            <input type="password" id="gh-token" placeholder="GitHub Token" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white">
-            <button onclick="saveSettings()" class="w-full bg-pink-600/80 hover:bg-pink-600 text-white font-bold py-2 rounded-lg text-xs transition">حفظ الإعدادات في المتصفح</button>
-        </div>
-
-        <!-- نموذج إضافة صفحة جديدة -->
-        <div class="space-y-4 pt-2">
-            <div>
-                <label class="block text-xs text-pink-300 font-semibold mb-1">معرف الرابط (Slug بالإنجليزية مثل: sara):</label>
-                <input type="text" id="page-slug" placeholder="مثال: sara" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm">
-            </div>
-
-            <div>
-                <label class="block text-xs text-pink-300 font-semibold mb-1">اسم الشخص:</label>
-                <input type="text" id="page-name" placeholder="مثال: سارة محمد" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm">
-            </div>
-
-            <div>
-                <label class="block text-xs text-pink-300 font-semibold mb-1">كلمة المرور:</label>
-                <input type="text" id="page-pass" placeholder="كلمة السر لفتح الرسالة" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm">
-            </div>
-
-            <div>
-                <label class="block text-xs text-pink-300 font-semibold mb-1">نص الرسالة:</label>
-                <textarea id="page-msg" rows="3" placeholder="اكتب الرسالة هنا..." class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm resize-none"></textarea>
-            </div>
-
-            <div>
-                <label class="block text-xs text-pink-300 font-semibold mb-1">رابط الأغنية (اختياري MP3):</label>
-                <input type="text" id="page-song" placeholder="رابط مباشر للأغنية" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm">
-            </div>
-
-            <button onclick="createNewPage()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">
-                إنشاء ورفع الصفحة على جيت هاب <i class="fas fa-cloud-upload-alt mr-2"></i>
-            </button>
-        </div>
-
-        <div id="result-box" class="hidden space-y-2 pt-4 border-t border-white/10 text-center">
-            <p class="text-xs text-green-400 font-semibold">تم رفع الصفحة وتحديث جيت هاب بنجاح!</p>
-            <input type="text" id="final-link" readonly class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-pink-300 text-xs text-center select-all">
-        </div>
+<div class="container">
+    <h2>لوحة التحكم الإدارية</h2>
+    
+    <div class="form-group">
+        <label>GitHub Personal Access Token</label>
+        <input type="password" id="ghToken" placeholder="أدخل توكن جيت هاب هنا">
     </div>
 
-    <script>
-        window.onload = function() {
-            if(localStorage.getItem('gh_owner')) document.getElementById('gh-owner').value = localStorage.getItem('gh_owner');
-            if(localStorage.getItem('gh_repo')) document.getElementById('gh-repo').value = localStorage.getItem('gh_repo');
-            if(localStorage.getItem('gh_token')) document.getElementById('gh-token').value = localStorage.getItem('gh_token');
-        };
+    <div class="form-group">
+        <label>اسم الشخص / المفتاح (Key)</label>
+        <input type="text" id="personName" placeholder="مثال: ahmed">
+    </div>
 
-        function saveSettings() {
-            localStorage.setItem('gh_owner', document.getElementById('gh-owner').value.trim());
-            localStorage.setItem('gh_repo', document.getElementById('gh-repo').value.trim());
-            localStorage.setItem('gh_token', document.getElementById('gh-token').value.trim());
-            alert("تم حفظ الإعدادات بنجاح!");
+    <div class="form-group">
+        <label>كلمة المرور</label>
+        <input type="text" id="personPass" placeholder="كلمة المرور الخاصة به">
+    </div>
+
+    <div class="form-group">
+        <label>رابط الأغنية أو الصفحة المباشر (اختياري)</label>
+        <input type="text" id="personLink" placeholder="https://...">
+    </div>
+
+    <button onclick="saveData()">إنشاء ورفع البيانات وتليجرام</button>
+    <div class="status" id="statusMsg"></div>
+</div>
+
+<script>
+    // استرجاع التوكن المحفوظ مسبقاً في المتصفح
+    document.getElementById('ghToken').value = localStorage.getItem('gh_token') || '';
+
+    async function saveData() {
+        const token = document.getElementById('ghToken').value.trim();
+        const name = document.getElementById('personName').value.trim();
+        const password = document.getElementById('personPass').value.trim();
+        const link = document.getElementById('personLink').value.trim();
+        const statusMsg = document.getElementById('statusMsg');
+
+        if (!token || !name || !password) {
+            statusMsg.style.color = '#f85149';
+            statusMsg.innerText = 'الرجاء ملء حقل التوكن، الاسم، وكلمة المرور!';
+            return;
         }
 
-        async function createNewPage() {
-            const owner = localStorage.getItem('gh_owner') || document.getElementById('gh-owner').value.trim();
-            const repo = localStorage.getItem('gh_repo') || document.getElementById('gh-repo').value.trim();
-            const token = localStorage.getItem('gh_token') || document.getElementById('gh-token').value.trim();
+        // حفظ التوكن محلياً لتوفير الوقت
+        localStorage.setItem('gh_token', token);
 
-            if (!owner || !repo || !token) {
-                alert("يرجى إدخال وحفظ إعدادات جيت هاب أولاً بالأعلى.");
-                return;
+        statusMsg.style.color = '#58a6ff';
+        statusMsg.innerText = 'جاري الاتصال بجيت هاب وتحديث قاعدة البيانات...';
+
+        const owner = 'mohamed-egypt7';
+        const repo = 'For-you-';
+        const path = 'db.json';
+        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+        try {
+            // 1. جلب الملف الحالي من جيت هاب لمعرفة الـ SHA
+            let response = await fetch(url, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+
+            let sha = '';
+            let dbData = {};
+
+            if (response.ok) {
+                let fileInfo = await response.json();
+                sha = fileInfo.sha;
+                let decodedContent = decodeURIComponent(escape(atob(fileInfo.content)));
+                dbData = JSON.parse(decodedContent);
+            } else if (response.status !== 404) {
+                throw new Error('فشل جلب ملف db.json من جيت هاب، تأكد من التوكن وصلاحياته.');
             }
 
-            const slug = document.getElementById('page-slug').value.trim().toLowerCase();
-            const name = document.getElementById('page-name').value.trim();
-            const password = document.getElementById('page-pass').value.trim();
-            const message = document.getElementById('page-msg').value.trim();
-            const songUrl = document.getElementById('page-song').value.trim();
+            // 2. تحديث البيانات بالاسم الجديد
+            dbData[name] = {
+                password: password,
+                link: link || ''
+            };
 
-            if (!slug || !name || !password || !message) {
-                alert("يرجى ملء الحقول الأساسية.");
-                return;
+            // 3. إعادة رفع الملف المحدث إلى جيت هاب
+            let encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(dbData, null, 2))));
+            
+            let putResponse = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: `Add/Update ${name} via Web Admin Panel`,
+                    content: encodedContent,
+                    sha: sha ? sha : undefined
+                })
+            });
+
+            if (!putResponse.ok) {
+                let errDetails = await putResponse.json();
+                throw new Error('فشل الرفع لجيت هاب: ' + (errDetails.message || putResponse.statusText));
             }
 
-            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/db.json`;
+            // 4. إرسال نسخة احتياطية وتنبيه عبر بوت تيليجرام (بالشات آي دي الصحيح 8718173410)
+            const botToken = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU';
+            const chatId = '8718173410';
+            const telegramMsg = `🚀 *تمت إضافة مستخدم جديد بنجاح!*\n\n👤 *الاسم:* ${name}\n🔑 *الباسورد:* ${password}\n🔗 *الرابط:* ${link || 'لا يوجد'}`;
+            
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: telegramMsg,
+                    parse_mode: 'Markdown'
+                })
+            }).catch(e => console.log('Telegram notice failed:', e));
 
-            try {
-                let fileSha = '';
-                let dbData = {};
+            statusMsg.style.color = '#3fb950';
+            statusMsg.innerText = '✅ تم تحديث النظام وإرسال الباك أب لتليجرام بنجاح!';
+            
+            // تفريغ الحقول بعد النجاح
+            document.getElementById('personName').value = '';
+            document.getElementById('personPass').value = '';
+            document.getElementById('personLink').value = '';
 
-                const res = await fetch(apiUrl, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-
-                if (res.ok) {
-                    const fileInfo = await res.json();
-                    fileSha = fileInfo.sha;
-                    const decodedContent = decodeURIComponent(escape(atob(fileInfo.content)));
-                    dbData = JSON.parse(decodedContent);
-                }
-
-                dbData[slug] = { name, password, message, songUrl };
-
-                const jsonString = JSON.stringify(dbData, null, 2);
-                const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
-
-                const updateRes = await fetch(apiUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: `Add new secret page for ${slug}`,
-                        content: encodedContent,
-                        sha: fileSha || undefined
-                    })
-                });
-
-                if (updateRes.ok) {
-                    const currentURL = window.location.href.replace('admin.html', 'index.html');
-                    const fullLink = `${currentURL}?to=${slug}`;
-                    document.getElementById('final-link').value = fullLink;
-                    document.getElementById('result-box').classList.remove('hidden');
-                    alert("تم إنشاء الصفحة ورفعها على جيت هاب بنجاح تام!");
-                } else {
-                    const errData = await updateRes.json();
-                    alert("فشل الرفع لجيت هاب: " + (errData.message || "خطأ في الاتصال"));
-                }
-            } catch (e) {
-                alert("حدث خطأ في الاتصال: " + e.message);
-            }
+        } catch (error) {
+            statusMsg.style.color = '#f85149';
+            statusMsg.innerText = '❌ خطأ: ' + error.message;
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
