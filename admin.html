@@ -3,303 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم الرسائل الخاصة الاحترافية</title>
+    <title>لوحة التحكم السحابية - جيت هاب</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', sans-serif; background: #070913; color: white; min-height: 100vh; padding: 20px; }
+        body { font-family: 'Cairo', sans-serif; background: #070913; color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
     </style>
 </head>
-<body class="max-w-3xl mx-auto space-y-8">
+<body class="w-full max-w-lg mx-auto">
 
-    <!-- شريط إدارة الملفات والنسخ الاحتياطي -->
-    <div class="glass-panel p-4 flex flex-wrap items-center justify-between gap-4 border border-purple-500/30">
-        <div class="flex items-center gap-2 text-sm text-purple-300 font-bold">
-            <i class="fas fa-file-shield"></i> الأمان والنسخ الاحتياطي (ملفات الداتا):
+    <div class="glass-panel p-8 w-full space-y-6">
+        <div class="text-center">
+            <h1 class="text-2xl font-bold text-pink-400">لوحة التحكم السحابية</h1>
+            <p class="text-xs text-gray-400 mt-1">أضف أي شخص وسيتم حفظه على جيت هاب مباشرة للجميع</p>
         </div>
-        <div class="flex items-center gap-2 flex-wrap">
-            <button onclick="exportDataFile()" class="bg-purple-600/30 text-purple-300 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition">
-                <i class="fas fa-download ml-1"></i> تحميل ملف الداتا (Backup)
+
+        <!-- إعدادات جيت هاب (تُدخل مرة واحدة فقط) -->
+        <div class="bg-white/5 p-4 rounded-xl border border-white/10 space-y-3">
+            <h3 class="text-xs font-bold text-pink-300">إعدادات الربط بجيت هاب (مرة واحدة):</h3>
+            <input type="text" id="gh-owner" placeholder="اسمك على جيت هاب (Username)" class="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-xs text-white">
+            <input type="text" id="gh-repo" placeholder="اسم المستودع (Repository Name)" class="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-xs text-white">
+            <input type="password" id="gh-token" placeholder="GitHub Personal Access Token" class="w-full bg-black/30 border border-white/10 rounded-lg p-2 text-xs text-white">
+            <button onclick="saveSettings()" class="w-full bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 rounded-lg transition">حفظ الإعدادات</button>
+        </div>
+
+        <!-- نموذج إضافة صفحة جديدة -->
+        <div class="space-y-4 pt-2">
+            <div>
+                <label class="block text-xs text-pink-300 font-semibold mb-1">معرف الرابط (Slug بالإنجليزية مثل: sara, ahmed):</label>
+                <input type="text" id="page-slug" placeholder="مثال: sara" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs text-pink-300 font-semibold mb-1">اسم الشخص:</label>
+                <input type="text" id="page-name" placeholder="مثال: سارة محمد" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs text-pink-300 font-semibold mb-1">كلمة المرور:</label>
+                <input type="text" id="page-pass" placeholder="كلمة السر لفتح الرسالة" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs text-pink-300 font-semibold mb-1">نص الرسالة:</label>
+                <textarea id="page-msg" rows="3" placeholder="اكتب الرسالة هنا..." class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm resize-none"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs text-pink-300 font-semibold mb-1">رابط الأغنية (اختياري MP3):</label>
+                <input type="text" id="page-song" placeholder="رابط مباشر للأغنية" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-pink-500 text-sm">
+            </div>
+
+            <button onclick="createNewPage()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm">
+                إنشاء ورفع الصفحة على جيت هاب <i class="fas fa-cloud-upload-alt mr-2"></i>
             </button>
-            <label class="bg-blue-600/30 text-blue-300 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
-                <i class="fas fa-upload ml-1"></i> استرجاع ملف
-                <input type="file" id="import-file" accept=".json" onchange="importDataFile(event)" class="hidden">
-            </label>
         </div>
-    </div>
 
-    <!-- 1. صندوق الوارد (الرسائل الواردة مع التحديث التلقائي والعداد) -->
-    <div class="glass-panel p-6 sm:p-8 border border-pink-500/30">
-        <div class="flex items-center justify-between mb-6">
-            <h1 class="text-xl font-bold text-pink-400 flex items-center gap-2">
-                <i class="fas fa-inbox"></i> صندوق الوارد (<span id="inbox-count">0</span>)
-            </h1>
-            <button onclick="clearInbox()" class="bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold transition">
-                <i class="fas fa-trash"></i> تفريغ صندوق الوارد
-            </button>
+        <div id="result-box" class="hidden space-y-2 pt-4 border-t border-white/10 text-center">
+            <p class="text-xs text-green-400 font-semibold">تم رفع الصفحة وتحديث جيت هاب بنجاح!</p>
+            <input type="text" id="final-link" readonly class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-pink-300 text-xs text-center select-all">
         </div>
-        <div id="inbox-list" class="space-y-4">
-            <p class="text-gray-400 text-sm text-center py-4">لا توجد رسائل واردة حتى الآن.</p>
-        </div>
-    </div>
-
-    <!-- 2. صانع وتعديل الصفحات -->
-    <div class="glass-panel p-6 sm:p-8">
-        <h2 id="form-title" class="text-xl font-bold text-pink-400 mb-6 flex items-center gap-2">
-            <i class="fas fa-tools"></i> صانع صفحات الرسائل (المنفذ 9090)
-        </h2>
-
-        <div class="space-y-4 text-right">
-            <div>
-                <label class="block text-xs text-gray-300 font-semibold mb-1">معرف الرابط (Slug) بالإنجليزية بدون مسافات (مثال: mohamed):</label>
-                <input type="text" id="page-slug" placeholder="mok" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500 font-mono">
-                <input type="hidden" id="original-slug">
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs text-gray-300 font-semibold mb-1">اسم الشخص الموجه له الرسالة:</label>
-                    <input type="text" id="page-name" placeholder="محمد ياسر" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-300 font-semibold mb-1">كلمة مرور فتح الصفحة:</label>
-                    <input type="text" id="page-password" placeholder="123" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500 font-mono">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs text-gray-300 font-semibold mb-1">رابط صورة شخصية تحت الاسم (اختياري تماماً):</label>
-                <input type="text" id="page-image" placeholder="https://files.catbox.moe/image.jpg" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500 font-mono">
-            </div>
-
-            <div>
-                <label class="block text-xs text-gray-300 font-semibold mb-1">نص الرسالة السرية:</label>
-                <textarea id="page-message" rows="4" placeholder="اكتب رسالتك هنا..." class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500 resize-none"></textarea>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs text-gray-300 font-semibold mb-1">رابط الأغنية المباشر (.mp3):</label>
-                    <input type="text" id="page-song-url" placeholder="https://files.catbox.moe/song.mp3" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500 font-mono">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-300 font-semibold mb-1">عنوان الأغنية الظاهر:</label>
-                    <input type="text" id="page-song-title" placeholder="مقطوعة هادئة" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500">
-                </div>
-            </div>
-
-            <div class="flex gap-2 mt-4">
-                <button onclick="savePageData()" class="flex-1 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-sm">
-                    <i class="fas fa-save ml-2"></i> حفظ الصفحة وإنشاء الرابط
-                </button>
-                <button onclick="resetForm()" id="cancel-edit-btn" class="hidden bg-gray-600 hover:bg-gray-700 text-white font-bold px-5 py-4 rounded-xl transition text-sm">
-                    إلغاء التعديل
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. الصفحات المحفوظة (مع أزرار النسخ والمعاينة والتعديل) -->
-    <div class="glass-panel p-6">
-        <h2 class="text-lg font-bold text-pink-400 mb-4">الصفحات المحفوظة حالياً:</h2>
-        <div id="pages-list" class="space-y-3 text-sm"></div>
     </div>
 
     <script>
-        function savePageData() {
+        window.onload = function() {
+            document.getElementById('gh-owner').value = localStorage.getItem('gh_owner') || '';
+            document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';
+            document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
+        };
+
+        function saveSettings() {
+            localStorage.setItem('gh_owner', document.getElementById('gh-owner').value.trim());
+            localStorage.setItem('gh_repo', document.getElementById('gh-repo').value.trim());
+            localStorage.setItem('gh_token', document.getElementById('gh_token').value.trim());
+            alert("تم حفظ إعدادات جيت هاب بنجاح!");
+        }
+
+        async function createNewPage() {
+            const owner = localStorage.getItem('gh_owner');
+            const repo = localStorage.getItem('gh_repo');
+            const token = localStorage.getItem('gh_token');
+
+            if (!owner || !repo || !token) {
+                alert("يرجى إدخال وحفظ إعدادات جيت هاب أولاً بالأعلى.");
+                return;
+            }
+
             const slug = document.getElementById('page-slug').value.trim().toLowerCase();
-            const originalSlug = document.getElementById('original-slug').value.trim();
             const name = document.getElementById('page-name').value.trim();
-            const password = document.getElementById('page-password').value.trim();
-            const imageUrl = document.getElementById('page-image').value.trim();
-            const message = document.getElementById('page-message').value.trim();
-            const songUrl = document.getElementById('page-song-url').value.trim();
-            const songTitle = document.getElementById('page-song-title').value.trim();
+            const password = document.getElementById('page-pass').value.trim();
+            const message = document.getElementById('page-msg').value.trim();
+            const songUrl = document.getElementById('page-song').value.trim();
 
             if (!slug || !name || !password || !message) {
                 alert("يرجى ملء الحقول الأساسية.");
                 return;
             }
 
-            let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
+            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/db.json`;
 
-            if (originalSlug && originalSlug !== slug) {
-                delete db[originalSlug];
-            }
+            try {
+                // 1. جلب ملف db.json الحالي من المستودع
+                let fileSha = '';
+                let dbData = {};
 
-            db[slug] = {
-                name: name,
-                password: password,
-                imageUrl: imageUrl,
-                message: message,
-                songUrl: songUrl || "https://actions.google.com/sounds/v1/ambiences/relaxing_music.ogg",
-                songTitle: songTitle || "مقطوعة هادئة",
-                songDesc: "موسيقى مخصصة للرسالة"
-            };
+                const res = await fetch(apiUrl, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
 
-            localStorage.setItem('secret_pages_db', JSON.stringify(db));
-            alert("تم حفظ الصفحة بنجاح!");
-            resetForm();
-            loadPagesList();
-        }
-
-        function loadPagesList() {
-            let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
-            const listContainer = document.getElementById('pages-list');
-            listContainer.innerHTML = '';
-
-            if (Object.keys(db).length === 0) {
-                listContainer.innerHTML = '<p class="text-gray-400 text-xs text-center py-2">لا توجد صفحات محفوظة.</p>';
-                return;
-            }
-
-            for (let slug in db) {
-                const item = document.createElement('div');
-                item.className = "bg-white/5 p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between border border-white/5 gap-3";
-                item.innerHTML = `
-                    <div>
-                        <p class="font-bold text-pink-300">الاسم: ${db[slug].name}</p>
-                        <p class="text-xs text-gray-400 font-mono">الرابط: ?to=${slug} | الباسورد: ${db[slug].password}</p>
-                    </div>
-                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
-                        <button onclick="copyPageLink('${slug}')" class="bg-purple-600/30 text-purple-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-purple-600 hover:text-white transition"><i class="fas fa-copy"></i> نسخ الرابط</button>
-                        <a href="index.html?to=${slug}" target="_blank" class="bg-blue-600/30 text-blue-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-600 hover:text-white transition">معاينة</a>
-                        <button onclick="editPage('${slug}')" class="bg-amber-600/30 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-600 hover:text-white transition">تعديل</button>
-                        <button onclick="deletePage('${slug}')" class="bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 hover:text-white transition">حذف</button>
-                    </div>
-                `;
-                listContainer.appendChild(item);
-            }
-        }
-
-        function copyPageLink(slug) {
-            const fullLink = window.location.href.replace('admin.html', 'index.html') + `?to=${slug}`;
-            navigator.clipboard.writeText(fullLink).then(() => {
-                alert("تم نسخ رابط الصفحة بنجاح!");
-            });
-        }
-
-        function editPage(slug) {
-            let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
-            if (!db[slug]) return;
-
-            const page = db[slug];
-            document.getElementById('page-slug').value = slug;
-            document.getElementById('original-slug').value = slug;
-            document.getElementById('page-name').value = page.name;
-            document.getElementById('page-password').value = page.password;
-            document.getElementById('page-image').value = page.imageUrl || '';
-            document.getElementById('page-message').value = page.message;
-            document.getElementById('page-song-url').value = page.songUrl;
-            document.getElementById('page-song-title').value = page.songTitle;
-
-            document.getElementById('form-title').innerHTML = `<i class="fas fa-edit"></i> تعديل صفحة: ${page.name}`;
-            document.getElementById('cancel-edit-btn').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function resetForm() {
-            document.getElementById('page-slug').value = '';
-            document.getElementById('original-slug').value = '';
-            document.getElementById('page-name').value = '';
-            document.getElementById('page-password').value = '';
-            document.getElementById('page-image').value = '';
-            document.getElementById('page-message').value = '';
-            document.getElementById('page-song-url').value = '';
-            document.getElementById('page-song-title').value = '';
-
-            document.getElementById('form-title').innerHTML = `<i class="fas fa-tools"></i> صانع صفحات الرسائل (المنفذ 9090)`;
-            document.getElementById('cancel-edit-btn').classList.add('hidden');
-        }
-
-        function deletePage(slug) {
-            if (confirm(`هل أنت متأكد من حذف صفحة المعرف (${slug})؟`)) {
-                let db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
-                delete db[slug];
-                localStorage.setItem('secret_pages_db', JSON.stringify(db));
-                loadPagesList();
-            }
-        }
-
-        function loadInbox() {
-            let inbox = JSON.parse(localStorage.getItem('secret_inbox_messages')) || [];
-            const inboxContainer = document.getElementById('inbox-list');
-            document.getElementById('inbox-count').innerText = inbox.length;
-            inboxContainer.innerHTML = '';
-
-            if (inbox.length === 0) {
-                inboxContainer.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">لا توجد رسائل واردة حتى الآن.</p>';
-                return;
-            }
-
-            inbox.forEach((msg) => {
-                const card = document.createElement('div');
-                card.className = "bg-white/5 p-4 rounded-2xl border border-white/10 space-y-2 text-sm";
-                card.innerHTML = `
-                    <div class="flex items-center justify-between text-xs text-gray-400 border-b border-white/5 pb-2">
-                        <span><i class="fas fa-tag text-pink-400"></i> صفحة: <strong class="text-white">${msg.recipientName}</strong> (${msg.slug})</span>
-                        <span><i class="far fa-clock"></i> ${msg.date}</span>
-                    </div>
-                    <p class="text-gray-200 font-medium bg-black/20 p-3 rounded-xl border border-white/5">${msg.text}</p>
-                    <div class="flex items-center justify-between text-xs text-gray-400 pt-1">
-                        <span><i class="fas fa-globe text-purple-400"></i> الآي بي: <span class="font-mono text-white">${msg.ip}</span> | الموقع: <span class="text-white">${msg.location}</span></span>
-                    </div>
-                `;
-                inboxContainer.appendChild(card);
-            });
-        }
-
-        function clearInbox() {
-            if (confirm("هل أنت متأكد من تفريغ كل الرسائل الواردة؟")) {
-                localStorage.removeItem('secret_inbox_messages');
-                loadInbox();
-            }
-        }
-
-        function exportDataFile() {
-            const backupData = {
-                pages: JSON.parse(localStorage.getItem('secret_pages_db')) || {},
-                inbox: JSON.parse(localStorage.getItem('secret_inbox_messages')) || []
-            };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "secret_system_backup.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function importDataFile(event) {
-            const fileReader = new FileReader();
-            if (event.target.files[0]) {
-                fileReader.readAsText(event.target.files[0], "UTF-8");
-                fileReader.onload = function(e) {
-                    try {
-                        const importedData = JSON.parse(e.target.result);
-                        if (importedData.pages) {
-                            localStorage.setItem('secret_pages_db', JSON.stringify(importedData.pages));
-                        }
-                        if (importedData.inbox) {
-                            localStorage.setItem('secret_inbox_messages', JSON.stringify(importedData.inbox));
-                        }
-                        loadPagesList();
-                        loadInbox();
-                        alert("تم استرجاع الملفات والبيانات بنجاح!");
-                    } catch (error) {
-                        alert("حدث خطأ أثناء قراءة الملف، تأكد أنه ملف JSON صحيح.");
-                    }
+                if (res.ok) {
+                    const fileInfo = await res.json();
+                    fileSha = fileInfo.sha;
+                    // فك تشفير المحتوى الحالي
+                    const decodedContent = decodeURIComponent(escape(atob(fileInfo.content)));
+                    dbData = JSON.parse(decodedContent);
                 }
+
+                // 2. إضافة الشخص الجديد للقاعدة
+                dbData[slug] = { name, password, message, songUrl };
+
+                // 3. تحويل الداتا لـ Base64 لرفعها لجيت هاب
+                const jsonString = JSON.stringify(dbData, null, 2);
+                const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
+
+                // 4. إرسال التحديث لـ جيت هاب
+                const updateRes = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Add new secret page for ${slug}`,
+                        content: encodedContent,
+                        sha: fileSha || undefined
+                    })
+                });
+
+                if (updateRes.ok) {
+                    const currentURL = window.location.href.replace('admin.html', 'index.html');
+                    const fullLink = `${currentURL}?to=${slug}`;
+                    document.getElementById('final-link').value = fullLink;
+                    document.getElementById('result-box').classList.remove('hidden');
+                    alert("تم إنشاء الصفحة ورفعها على جيت هاب بنجاح تام!");
+                } else {
+                    const errData = await updateRes.json();
+                    alert("فشل الرفع لجيت هاب: " + (errData.message || "تأكد من صحة التوكن واسم المستودع"));
+                }
+            } catch (e) {
+                alert("حدث خطأ في الاتصال: " + e.message);
             }
         }
-
-        window.onload = function() {
-            loadPagesList();
-            loadInbox();
-            setInterval(loadInbox, 3000); // تحديث تلقائي لصندوق الوارد كل 3 ثواني
-        };
     </script>
 </body>
 </html>
