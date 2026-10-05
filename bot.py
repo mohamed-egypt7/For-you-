@@ -131,7 +131,6 @@ def callback_list(call):
   bot.send_message(chat_id, text, reply_markup=markup)
 
 
-# --- قسم تعديل الرسائل ---
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_edit_menu')
 def callback_edit_menu(call):
   chat_id = call.message.chat.id
@@ -171,13 +170,12 @@ def callback_select_edit(call):
     bot.send_message(
         chat_id,
         f'📝 جارٍ تعديل الرسالة لـ ({current_info.get("name", slug)}).\n\n1️⃣'
-        ' أرسل **اسم الشخص الجديد** (أو اكتب `.` للإبقاء عليه كما هو):',
+        ' أرسل **اسم الشخص الجديد** (أو اكتب `.` للإبقاء عليه):',
     )
   else:
     bot.send_message(chat_id, '⚠️ هذه الرسالة غير موجودة.')
 
 
-# --- قسم الحذف ---
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_del_menu')
 def callback_del_menu(call):
   chat_id = call.message.chat.id
@@ -213,16 +211,18 @@ def callback_execute_delete(call):
   if slug_to_del in db_data:
     del db_data[slug_to_del]
     success = update_db(db_data, sha, f'Delete {slug_to_del}')
+    markup = types.InlineKeyboardMarkup()
+    markup.add(
+        types.InlineKeyboardButton(
+            '🔙 القائمة الرئيسية', callback_data='main_menu'
+        )
+    )
     if success:
-      markup = types.InlineKeyboardMarkup()
-      markup.add(
-          types.InlineKeyboardButton(
-              '🔙 القائمة الرئيسية', callback_data='main_menu'
-          )
+      bot.send_message(
+          chat_id, f'✅ تم حذف الرسالة ({slug_to_del}) بنجاح!', reply_markup=markup
       )
-      bot.send_message(chat_id, f'✅ تم الحذف بنجاح!', reply_markup=markup)
     else:
-      bot.send_message(chat_id, '❌ فشل التحديث على جيت هاب.')
+      bot.send_message(chat_id, '❌ فشل التحديث على جيت هاب.', reply_markup=markup)
   else:
     bot.send_message(chat_id, '⚠️ غير موجودة بالفعل.')
 
@@ -234,7 +234,6 @@ def callback_main_menu(call):
   bot.send_message(chat_id, '🏠 القائمة الرئيسية:', reply_markup=main_menu())
 
 
-# --- معالجة الخطوات (إضافة وتعديل) ---
 @bot.message_handler(
     func=lambda m: str(m.chat.id) == str(ADMIN_CHAT_ID)
     and m.chat.id in user_steps
@@ -247,7 +246,6 @@ def handle_steps(message):
   if not db_data:
     db_data = {}
 
-  # --- خطوات التعديل ---
   if step == 'edit_waiting_for_name':
     slug = temp_data[chat_id]['editing_slug']
     if text != '.':
@@ -305,7 +303,6 @@ def handle_steps(message):
     else:
       bot.send_message(chat_id, '❌ حدث خطأ أثناء التحديث.', reply_markup=markup)
 
-  # --- خطوات الإضافة الجديدة ---
   elif step == 'waiting_for_name':
     temp_data[chat_id]['name'] = text
     user_steps[chat_id] = 'waiting_for_slug'
@@ -359,24 +356,23 @@ def handle_steps(message):
     }
 
     success = update_db(db_data, sha, f'Add message {slug}')
+    markup = types.InlineKeyboardMarkup()
+    markup.add(
+        types.InlineKeyboardButton(
+            '🔙 القائمة الرئيسية', callback_data='main_menu'
+        )
+    )
     if success:
-      markup = types.InlineKeyboardMarkup()
-      markup.add(
-          types.InlineKeyboardButton(
-              '🔙 القائمة الرئيسية', callback_data='main_menu'
-          )
-      )
       msg_text = (
           f'✅ تمت الإضافة وتحديث الموقع بنجاح!\n\n👤 لمن: {name}\n🔑'
           f' الباسورد: {password}\n🔗 الرابط المباشر:\n{page_link}\n💬'
-          f' الرسالة: {custom_msg}\n🎵 عنوان الأغنية: {song_title}\n🔗 رابط'
-          f' الأغنية: {song_link}'
+          f' الرسالة: {custom_msg}\n🎵 عنوان الأغنية: {song_title}'
       )
       bot.send_message(chat_id, msg_text, reply_markup=markup)
     else:
-      bot.send_message(chat_id, '❌ حدث خطأ أثناء التحديث على جيت هاب.')
+      bot.send_message(chat_id, '❌ حدث خطأ أثناء التحديث على جيت هاب.', reply_markup=markup)
 
 
 if __name__ == '__main__':
-  print('Bot is running successfully with edit feature...')
+  print('Bot is running successfully with complete edit and delete features...')
   bot.infinity_polling()
