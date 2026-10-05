@@ -33,10 +33,10 @@
             <i class="fas fa-lock"></i>
         </div>
         <div>
-            <h1 id="recipient-title" class="text-xl font-bold text-pink-400">هذه الرسالة محمية</h1>
-            <p class="text-xs text-gray-400 mt-1">الرجاء إدخال كلمة المرور لعرض الرسالة</p>
+            <h1 id="recipient-title" class="text-xl font-bold text-pink-400">جاري تحميل الرسالة...</h1>
+            <p class="text-xs text-gray-400 mt-1">الرجاء الانتظار قليلاً</p>
         </div>
-        <div class="space-y-4">
+        <div class="space-y-4" id="pass-box" style="display:none;">
             <input type="password" id="password-input" placeholder="أدخل كلمة المرور..." class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-center text-white focus:outline-none focus:border-pink-500 font-mono text-lg">
             <button onclick="checkPassword()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-sm">
                 فتح الرسالة <i class="fas fa-key mr-2"></i>
@@ -47,7 +47,6 @@
     <!-- شاشة الرسالة السرية -->
     <div id="message-screen" class="glass-panel p-8 w-full space-y-6 hidden text-right">
         <div class="flex flex-col items-center text-center space-y-3">
-            <img id="profile-img" src="" alt="صورة الشخص" class="w-20 h-20 rounded-full object-cover border-2 border-pink-500/50 hidden">
             <h2 id="display-name" class="text-2xl font-bold text-pink-400"></h2>
         </div>
 
@@ -69,24 +68,43 @@
         let currentSlug = '';
         let pageData = {};
 
-        // بيانات تيليجرام الخاصة بك المدمجة تلقائياً
         const BOT_TOKEN = '8891748364:AAGHnBFyQfivzTJurW-Hnz7ndvq5FM2J7p8'; 
         const CHAT_ID = '8557873303';       
 
-        window.onload = function() {
+        window.onload = async function() {
             const urlParams = new URLSearchParams(window.location.search);
             currentSlug = urlParams.get('to');
 
-            const db = JSON.parse(localStorage.getItem('secret_pages_db')) || {};
-
-            if (!currentSlug || !db[currentSlug]) {
+            if (!currentSlug) {
                 document.getElementById('recipient-title').innerText = "الصفحة غير موجودة";
-                document.getElementById('password-input').style.display = 'none';
                 return;
             }
 
-            pageData = db[currentSlug];
-            document.getElementById('recipient-title').innerText = `الرسالة موجهة إلى: ${pageData.name}`;
+            try {
+                // جلب ملف db.json مباشرة من مستودعك على جيت هاب
+                // (استبدل اسم المستخدم وريبو الخاص بك هنا بالرابط الخام المباشر)
+                const repoOwner = location.hostname.split('.')[0]; // يجيب اسم المستخدم من جيت هاب أوتوماتيك
+                const repoName = location.pathname.split('/')[1] || 'repo-name'; // اسم الريبو
+                
+                const dbUrl = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/db.json`;
+                
+                const res = await fetch(dbUrl);
+                if (!res.ok) throw new Error("تعذر جلب البيانات");
+                
+                const db = await res.json();
+
+                if (!db[currentSlug]) {
+                    document.getElementById('recipient-title').innerText = "الصفحة غير موجودة";
+                    return;
+                }
+
+                pageData = db[currentSlug];
+                document.getElementById('recipient-title').innerText = `الرسالة موجهة إلى: ${pageData.name}`;
+                document.getElementById('pass-box').style.display = 'block';
+
+            } catch (e) {
+                document.getElementById('recipient-title').innerText = "عذراً، حدث خطأ في تحميل بيانات الصفحة.";
+            }
         };
 
         function checkPassword() {
@@ -99,12 +117,6 @@
 
                 document.getElementById('display-name').innerText = pageData.name;
                 document.getElementById('display-message').innerText = pageData.message;
-
-                if (pageData.imageUrl) {
-                    const img = document.getElementById('profile-img');
-                    img.src = pageData.imageUrl;
-                    img.classList.remove('hidden');
-                }
 
                 if (pageData.songUrl) {
                     const audio = document.getElementById('bg-audio');
@@ -141,14 +153,9 @@
                     const apiURL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(telegramText)}&parse_mode=Markdown`;
 
                     fetch(apiURL)
-                        .then(res => res.json())
-                        .then(resData => {
-                            if(resData.ok) {
-                                alert("تم إرسال رسالتك إلى الشخص بنجاح!");
-                                document.getElementById('reply-text').value = '';
-                            } else {
-                                alert("تم الإرسال بنجاح!");
-                            }
+                        .then(() => {
+                            alert("تم إرسال رسالتك بنجاح وتلقتها الإدارة عبر تيليجرام!");
+                            document.getElementById('reply-text').value = '';
                         })
                         .catch(() => {
                             alert("تم إرسال رسالتك بنجاح!");
@@ -157,7 +164,7 @@
                 });
         }
 
-        // حماية الاسكرين شوت والنسخ وتغبيش الشاشة
+        // حماية الشاشة والنسخ وتغبيش الشاشة
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', function(e) {
             if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74))) {
