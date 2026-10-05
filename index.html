@@ -278,6 +278,7 @@
 
         async function fetchDatabase() {
             try {
+                // إضافة timestamp لمنع تخزين الكاش القديم
                 const res = await fetch('db.json?t=' + Date.now());
                 if (res.ok) {
                     dbData = await res.json();
@@ -310,13 +311,13 @@
             }
 
             const userInfo = dbData[currentSlug];
-            // معالجة دقيقة للباسورد لتجنب أي مشاكل في التطابق
             let correctPass = userInfo && userInfo.password !== undefined ? String(userInfo.password).trim() : "1234";
 
+            // للتحقق ومساعدتك: لو الباسورد خطأ هيقولك الباسورد المسجل في السيرفر كام بالظبط
             if (enteredPass === correctPass) {
                 showContent(userInfo);
             } else {
-                errorDiv.innerText = 'كلمة المرور غير صحيحة، حاول مرة أخرى.';
+                errorDiv.innerText = `كلمة المرور غير صحيحة! (الباسورد المسجل: ${correctPass})`;
             }
         }
 
