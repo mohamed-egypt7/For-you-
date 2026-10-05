@@ -42,5 +42,14 @@
     "song_title": "Song",
     "song_link": "https://github.com/mohamed-egypt7/For-you-/raw/refs/heads/main/8718173410_tk.mp3",
     "link": "https://mohamed-egypt7.github.io/For-you-/index.html?to=saraa"
+  },
+  "Uy": {
+    "name": "Mohammed",
+    "slug": "Uy",
+    "password": "12345",
+    "message": "بحبك",
+    "song_title": "مني",
+    "song_link": "https://github.com/mohamed-egypt7/For-you-/raw/refs/heads/main/8718173410_tk.mp3",
+    "link": "https://mohamed-egypt7.github.io/For-you-/index.html?to=Uy"
   }
 }
