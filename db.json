@@ -17,5 +17,12 @@
     "password": "78",
     "song_link": "https://github.com/mohamed-egypt7/For-you-/raw/refs/heads/main/8718173410_tk.mp3",
     "link": "https://mohamed-egypt7.github.io/For-you-/user.html#M"
+  },
+  "first": {
+    "name": "محمد",
+    "slug": "first",
+    "message": "بحبك اوي يا محمد ونفسي اعيش معاك ديما",
+    "song_link": "https://github.com/mohamed-egypt7/For-you-/raw/refs/heads/main/8718173410_tk.mp3",
+    "link": "https://mohamed-egypt7.github.io/For-you-/index.html?to=first"
   }
 }
