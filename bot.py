@@ -82,7 +82,7 @@ def start_command(message):
     return
   bot.send_message(
       message.chat.id,
-      'أهلاً بك يا محمد! 🚀 لوحة تحكم الرسائل جاهزة:',
+      'أهلاً بك يا محمد! 🚀 لوحة التحكم المتقدمة جاهزة:',
       reply_markup=main_menu(),
   )
 
@@ -94,7 +94,7 @@ def callback_add(call):
   temp_data[chat_id] = {}
   bot.answer_callback_query(call.id)
   bot.send_message(
-      chat_id, '👤 اكتب **اسم الشخص** (رسالة إلى مين، مثل: محمد أو أحمد):'
+      chat_id, '1️⃣ أرسل **اسم الشخص** (رسالة إلى مين، مثل: محمد):'
   )
 
 
@@ -108,11 +108,15 @@ def callback_list(call):
     return
 
   text = '📋 قائمة الرسائل المسجلة:\n\n'
-  for name, info in db_data.items():
-    slug = info.get('slug', name)
-    page_link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/index.html?to={slug}'
+  for slug, info in db_data.items():
+    name = info.get('name', slug)
+    pwd = info.get('password', '1234')
+    page_link = (
+        f'https://{REPO_OWNER}.github.io/{REPO_NAME}/index.html?to={slug}'
+    )
     text += (
-        f'👤 الاسم: {name}\n🔗 الرابط: {page_link}\n------------------\n'
+        f'👤 الاسم: {name}\n🔑 الباسورد: {pwd}\n🔗 الرابط:'
+        f' {page_link}\n------------------\n'
     )
 
   markup = types.InlineKeyboardMarkup()
@@ -132,28 +136,31 @@ def callback_del_menu(call):
     return
 
   markup = types.InlineKeyboardMarkup(row_width=1)
-  for name in db_data.keys():
+  for slug, info in db_data.items():
+    disp_name = info.get('name', slug)
     markup.add(
         types.InlineKeyboardButton(
-            f'❌ حذف: {name}', callback_data=f'del_{name}'
+            f'❌ حذف: {disp_name} ({slug})', callback_data=f'del_{slug}'
         )
     )
   markup.add(
       types.InlineKeyboardButton('🔙 القائمة الرئيسية', callback_data='main_menu')
   )
-  bot.send_message(chat_id, '🗑️ اختر الرسالة التي تريد حذفها:', reply_markup=markup)
+  bot.send_message(
+      chat_id, '🗑️ اختر الرسالة التي تريد حذفها:', reply_markup=markup
+  )
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('del_'))
 def callback_execute_delete(call):
   chat_id = call.message.chat.id
-  name_to_del = call.data.replace('del_', '', 1)
+  slug_to_del = call.data.replace('del_', '', 1)
   bot.answer_callback_query(call.id)
-  bot.send_message(chat_id, f'⏳ جاري حذف رسالة {name_to_del}...')
+  bot.send_message(chat_id, f'⏳ جاري حذف الرسالة {slug_to_del}...')
   db_data, sha = get_db()
-  if name_to_del in db_data:
-    del db_data[name_to_del]
-    success = update_db(db_data, sha, f'Delete user {name_to_del}')
+  if slug_to_del in db_data:
+    del db_data[slug_to_del]
+    success = update_db(db_data, sha, f'Delete {slug_to_del}')
     if success:
       markup = types.InlineKeyboardMarkup()
       markup.add(
@@ -162,7 +169,7 @@ def callback_execute_delete(call):
           )
       )
       bot.send_message(
-          chat_id, f'✅ تم حذف رسالة {name_to_del} بنجاح!', reply_markup=markup
+          chat_id, f'✅ تم الحذف بنجاح!', reply_markup=markup
       )
     else:
       bot.send_message(chat_id, '❌ فشل التحديث على جيت هاب.')
@@ -190,34 +197,37 @@ def handle_steps(message):
     temp_data[chat_id]['name'] = text
     user_steps[chat_id] = 'waiting_for_slug'
     bot.reply_to(
-        message,
-        '🔗 أرسل الآن **اللينك الخاص** (مثال: `mohamed` أو `ggg` ليظهر في'
-        ' الرابط):',
-        parse_mode='Markdown',
+        message, '2️⃣ أرسل **الاسم في الرابط** (مثال: `first` أو `mohamed`):'
     )
 
   elif step == 'waiting_for_slug':
     temp_data[chat_id]['slug'] = text
+    user_steps[chat_id] = 'waiting_for_pass'
+    bot.reply_to(message, '3️⃣ أرسل **كلمة المرور** لفتح الصفحة:')
+
+  elif step == 'waiting_for_pass':
+    temp_data[chat_id]['password'] = text
     user_steps[chat_id] = 'waiting_for_msg'
     bot.reply_to(
-        message, '💬 أرسل الآن **نص الرسالة** التي ستظهر داخل صندوق الاقتباس:'
+        message, '4️⃣ أرسل **نص الرسالة** التي ستظهر داخل الاقتباس:'
     )
 
   elif step == 'waiting_for_msg':
     temp_data[chat_id]['custom_message'] = text
     user_steps[chat_id] = 'waiting_for_song'
     bot.reply_to(
-        message, '🎵 أرسل الآن **رابط الأغنية** (أو اكتب `لا` لو مفيش):'
+        message, '5️⃣ أرسل **رابط الأغنية المباشر** (أو اكتب `لا`):'
     )
 
   elif step == 'waiting_for_song':
     song_link = '' if text.lower() in ['لا', 'no'] else text
     name = temp_data[chat_id]['name']
     slug = temp_data[chat_id]['slug']
+    password = temp_data[chat_id]['password']
     custom_msg = temp_data[chat_id]['custom_message']
     del user_steps[chat_id]
 
-    bot.reply_to(message, '⏳ جاري الحفظ ورفع البيانات على جيت هاب...')
+    bot.reply_to(message, '⏳ جاري رفع البيانات وتحديث الموقع...')
 
     db_data, sha = get_db()
     if not db_data:
@@ -228,12 +238,13 @@ def handle_steps(message):
     db_data[slug] = {
         'name': name,
         'slug': slug,
+        'password': password,
         'message': custom_msg,
         'song_link': song_link,
         'link': page_link,
     }
 
-    success = update_db(db_data, sha, f'Add message for {name}')
+    success = update_db(db_data, sha, f'Add message {slug}')
     if success:
       markup = types.InlineKeyboardMarkup()
       markup.add(
@@ -242,9 +253,10 @@ def handle_steps(message):
           )
       )
       msg_text = (
-          f'✅ تمت الإضافة بنجاح!\n\n👤 لمن: {name}\n🔗 الرابط:\n{page_link}\n💬'
+          f'✅ تمت الإضافة وتحديث الموقع بنجاح!\n\n👤 لمن: {name}\n🔑'
+          f' الباسورد: {password}\n🔗 الرابط المباشر:\n{page_link}\n💬'
           f' الرسالة: {custom_msg}\n🎵 الأغنية:'
-          f' {song_link if song_link else "لا يوجد"}'
+          f' {song_link if song_link else "الافتراضية"}'
       )
       bot.send_message(chat_id, msg_text, reply_markup=markup)
     else:
