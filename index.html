@@ -27,18 +27,8 @@
 
     <script>
         let dbData = {};
-        let currentSlug = "";
-
-        function getSlug() {
-            const urlParams = new URLSearchParams(window.location.search);
-            let slug = urlParams.get('to');
-            if (!slug && window.location.hash) {
-                slug = decodeURIComponent(window.location.hash.substring(1));
-            }
-            return slug ? slug.trim() : "first";
-        }
-
-        currentSlug = getSlug();
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentSlug = urlParams.get('to') || window.location.hash.substring(1) || "first";
 
         async function fetchDatabase() {
             try {
@@ -46,12 +36,11 @@
                 if (res.ok) {
                     dbData = await res.json();
                     if (dbData[currentSlug] && dbData[currentSlug].name) {
-                        const targetName = dbData[currentSlug].name;
-                        document.getElementById('lockSubtitle').innerText = `اكتب الباسورد علشان تقرأ الرسالة يا ${targetName}`;
+                        document.getElementById('lockSubtitle').innerText = `اكتب الباسورد علشان تقرأ الرسالة يا ${dbData[currentSlug].name}`;
                     }
                 }
             } catch (e) {
-                console.log("خطأ في جلب قاعدة البيانات");
+                console.log("جاري الاعتماد على الرابط المباشر");
             }
         }
 
@@ -73,23 +62,28 @@
                 await fetchDatabase();
             }
 
-            const userInfo = dbData[currentSlug];
-            let correctPass = userInfo && userInfo.password !== undefined ? String(userInfo.password).trim() : "1234";
+            // فحص الباسورد من ملف db.json أو من الرابط مباشرة كاحتياط
+            let correctPass = "1234";
+            if (dbData[currentSlug] && dbData[currentSlug].password !== undefined) {
+                correctPass = String(dbData[currentSlug].password).trim();
+            } else if (urlParams.get('pass')) {
+                correctPass = urlParams.get('pass').trim();
+            }
 
             if (enteredPass === correctPass) {
-                showContent(userInfo);
+                showContent(dbData[currentSlug]);
             } else {
                 errorDiv.innerText = 'كلمة المرور غير صحيحة، حاول مرة أخرى.';
             }
         }
 
         function showContent(userInfo) {
-            const recipientName = userInfo ? (userInfo.name || currentSlug) : currentSlug;
-            const messageText = userInfo ? (userInfo.message || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.") : "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
-            const songTitle = userInfo && userInfo.song_title ? userInfo.song_title : "مقطوعة هادئة";
+            const recipientName = userInfo ? (userInfo.name || currentSlug) : (urlParams.get('to') || currentSlug);
+            const messageText = userInfo ? (userInfo.message || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.") : (urlParams.get('msg') || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.");
+            const songTitle = userInfo && userInfo.song_title ? userInfo.song_title : (urlParams.get('title') || "مقطوعة هادئة");
             const songUrl = (userInfo && userInfo.song_link && userInfo.song_link.startsWith('http')) 
                             ? userInfo.song_link 
-                            : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+                            : (urlParams.get('song') || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
 
             document.getElementById('mainContainer').innerHTML = `
                 <div class="heart-box">
@@ -111,63 +105,3 @@
                     <div class="music-info">
                         <p class="title">${songTitle}</p>
                         <p class="desc">موسيقى استرخاء</p>
-                    </div>
-                    <div class="music-icon-box">
-                        <i class="fa-solid fa-music"></i>
-                    </div>
-                </div>
-
-                <div class="reply-section">
-                    <label>رد على المرسل (بشكل مجهول):</label>
-                    <textarea id="replyMsg" placeholder="اكتب ردك هنا..."></textarea>
-                    <button class="btn" onclick="sendReply('${recipientName}')">
-                        <i class="fa-solid fa-paper-plane"></i> إرسال الرد سراً
-                    </button>
-                </div>
-            `;
-        }
-
-        function togglePlay() {
-            const audio = document.getElementById('bgAudio');
-            const playBtn = document.getElementById('playBtn');
-            if (audio.paused) {
-                audio.play();
-                playBtn.innerHTML = '<i class="fa-solid fa-pause"></i> إيقاف';
-            } else {
-                audio.pause();
-                playBtn.innerHTML = '<i class="fa-solid fa-play"></i> تشغيل';
-            }
-        }
-
-        const botToken = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU';
-        const chatId = '8718173410';
-
-        function sendReply(name) {
-            const message = document.getElementById('replyMsg').value.trim();
-            if (!message) {
-                alert('الرجاء كتابة رد أولاً!');
-                return;
-            }
-
-            const textToTelegram = `💌 رد جديد من (${name}):\n\n${message}`;
-            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: textToTelegram })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    alert('تم إرسال الرد سراً بنجاح! شكراً لك.');
-                    document.getElementById('replyMsg', '').value = '';
-                } else {
-                    alert('حدث خطأ أثناء الإرسال.');
-                }
-            })
-            .catch(() => alert('تأكد من اتصالك بالإنترنت.'));
-        }
-    </script>
-</body>
-</html>
