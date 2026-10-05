@@ -6,162 +6,7 @@
     <title>رسالة خاصة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            background: radial-gradient(circle at center, #161b22 0%, #0b0f14 100%);
-            color: #ffffff;
-            font-family: 'Tajawal', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .card {
-            background-color: #171b23;
-            border-radius: 24px;
-            padding: 35px 24px;
-            width: 100%;
-            max-width: 410px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.7), 0 0 20px rgba(176, 38, 255, 0.1);
-            text-align: center;
-            border: 1px solid #30363d;
-            animation: slideUp 0.5s ease-out forwards;
-        }
-        @keyframes slideUp {
-            0% { opacity: 0; transform: translateY(15px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        .heart-box {
-            background: linear-gradient(135deg, #b026ff 0%, #ff1a8b 100%);
-            width: 80px;
-            height: 80px;
-            border-radius: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 22px;
-            font-size: 36px;
-            box-shadow: 0 10px 25px rgba(255, 26, 139, 0.4);
-            animation: pulseGlow 2s infinite;
-        }
-        @keyframes pulseGlow {
-            0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 26, 139, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(176, 38, 255, 0.6); }
-            100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 26, 139, 0.4); }
-        }
-        h2 { margin: 0; font-size: 24px; font-weight: 700; color: #ffffff; }
-        h2 span#recipientName { color: #ff4d85; text-shadow: 0 0 10px rgba(255, 77, 133, 0.3); }
-        .subtitle { color: #8b949e; font-size: 14px; margin-top: 10px; margin-bottom: 25px; line-height: 1.5; }
-        input[type="password"] {
-            width: 100%;
-            background-color: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 16px;
-            padding: 15px;
-            color: #ffffff;
-            font-family: inherit;
-            font-size: 16px;
-            text-align: center;
-            margin-bottom: 15px;
-            outline: none;
-            transition: all 0.3s;
-        }
-        input[type="password"]:focus { border-color: #ff4d85; box-shadow: 0 0 12px rgba(255, 77, 133, 0.3); }
-        .btn {
-            background: linear-gradient(270deg, #b026ff 0%, #ff1a8b 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 16px;
-            width: 100%;
-            padding: 15px;
-            font-size: 16px;
-            font-family: inherit;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 6px 20px rgba(176, 38, 255, 0.4);
-            transition: transform 0.2s, opacity 0.2s;
-        }
-        .btn:hover { opacity: 0.95; transform: translateY(-2px); }
-        .btn:active { transform: scale(0.98); }
-        .error { color: #ff6b6b; font-size: 13px; margin-top: 12px; }
-        .quote-box {
-            background-color: #21262d;
-            border-radius: 18px;
-            padding: 24px 20px;
-            position: relative;
-            margin-bottom: 22px;
-            text-align: right;
-            border: 1px solid #30363d;
-        }
-        .quote-box p { margin: 0; font-size: 15px; line-height: 1.7; color: #e6edf3; }
-        .quote-mark-right { position: absolute; top: 10px; right: 14px; color: rgba(255, 77, 133, 0.2); font-size: 22px; }
-        .quote-mark-left { position: absolute; bottom: 10px; left: 14px; color: rgba(255, 77, 133, 0.2); font-size: 22px; }
-        .music-player {
-            background-color: #21262d;
-            border-radius: 18px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            border: 1px solid #30363d;
-        }
-        .play-btn {
-            background: linear-gradient(135deg, #ff3366, #ff1a8b);
-            color: #ffffff;
-            border: none;
-            border-radius: 22px;
-            padding: 10px 20px;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(255, 51, 102, 0.3);
-        }
-        .music-info { text-align: right; flex-grow: 1; margin-right: 15px; }
-        .music-info .title { font-weight: 700; font-size: 14px; margin: 0 0 3px 0; color: #ffffff; }
-        .music-info .desc { color: #8b949e; font-size: 12px; margin: 0; }
-        .music-icon-box {
-            background-color: rgba(255, 255, 255, 0.05);
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #ff4d85;
-            font-size: 18px;
-        }
-        .reply-section { text-align: right; }
-        .reply-section label { font-size: 13px; color: #8b949e; display: block; margin-bottom: 10px; }
-        textarea {
-            width: 100%;
-            background-color: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 16px;
-            padding: 15px;
-            color: #ffffff;
-            font-family: inherit;
-            font-size: 14px;
-            resize: none;
-            height: 90px;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-            outline: none;
-        }
-        textarea:focus { border-color: #b026ff; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -197,7 +42,6 @@
 
         async function fetchDatabase() {
             try {
-                // استخدام Date.now() لإلغاء التخزين المؤقت الكاش كلياً
                 const res = await fetch('db.json?v=' + Date.now());
                 if (res.ok) {
                     dbData = await res.json();
@@ -232,12 +76,6 @@
             const userInfo = dbData[currentSlug];
             let correctPass = userInfo && userInfo.password !== undefined ? String(userInfo.password).trim() : "1234";
 
-            // فحص إضافي من URL لحالات الطوارئ
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('pass')) {
-                correctPass = urlParams.get('pass').trim();
-            }
-
             if (enteredPass === correctPass) {
                 showContent(userInfo);
             } else {
@@ -246,13 +84,12 @@
         }
 
         function showContent(userInfo) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const recipientName = userInfo ? (userInfo.name || currentSlug) : (urlParams.get('to') || currentSlug);
-            const messageText = userInfo ? (userInfo.message || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.") : (urlParams.get('msg') || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.");
-            const songTitle = userInfo && userInfo.song_title ? userInfo.song_title : (urlParams.get('title') || "مقطوعة هادئة");
+            const recipientName = userInfo ? (userInfo.name || currentSlug) : currentSlug;
+            const messageText = userInfo ? (userInfo.message || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.") : "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
+            const songTitle = userInfo && userInfo.song_title ? userInfo.song_title : "مقطوعة هادئة";
             const songUrl = (userInfo && userInfo.song_link && userInfo.song_link.startsWith('http')) 
                             ? userInfo.song_link 
-                            : (urlParams.get('song') || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
+                            : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
 
             document.getElementById('mainContainer').innerHTML = `
                 <div class="heart-box">
@@ -324,7 +161,7 @@
             .then(data => {
                 if (data.ok) {
                     alert('تم إرسال الرد سراً بنجاح! شكراً لك.');
-                    document.getElementById('replyMsg').value = '';
+                    document.getElementById('replyMsg', '').value = '';
                 } else {
                     alert('حدث خطأ أثناء الإرسال.');
                 }
