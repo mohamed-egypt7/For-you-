@@ -111,9 +111,7 @@ def handle_steps(message):
     # تنظيف الحالة
     del user_steps[chat_id]
 
-    bot.reply_to(
-        message, '⏳ جاري رفع البيانات وتحديث جيت هاب، ثواني...'
-    )
+    bot.reply_to(message, '⏳ جاري رفع البيانات وتحديث جيت هاب، ثواني...')
 
     db_data, sha = get_db()
     if not db_data:
@@ -131,9 +129,10 @@ def handle_steps(message):
       )
       bot.send_message(
           chat_id,
-          f'✅ **تمت الإضافة بنجاح!**\n👤 الاسم: {name}\n🔑 الباسورد:'
-          f' {password}\n🔗 الرابط: {link || "لا يوجد"}',
-          parse_mode='Markdown',
+          (
+              f'✅ تمت الإضافة بنجاح!\n👤 الاسم: {name}\n🔑 الباسورد:'
+              f' {password}\n🔗 الرابط: {link if link else "لا يوجد"}'
+          ),
           reply_markup=markup,
       )
     else:
