@@ -127,14 +127,14 @@ def handle_steps(message):
               '➕ إضافة شخص آخر', callback_data='btn_add'
           )
       )
-      bot.send_message(
-          chat_id,
-          (
-              f'✅ تمت الإضافة بنجاح!\n👤 الاسم: {name}\n🔑 الباسورد:'
-              f' {password}\n🔗 الرابط: {link if link else "لا يوجد"}'
-          ),
-          reply_markup=markup,
+      link_display = link if link else 'لا يوجد'
+      msg_text = (
+          f'✅ تمت الإضافة بنجاح!\n'
+          f'👤 الاسم: {name}\n'
+          f'🔑 الباسورد: {password}\n'
+          f'🔗 الرابط: {link_display}'
       )
+      bot.send_message(chat_id, msg_text, reply_markup=markup)
     else:
       bot.send_message(
           chat_id, '❌ فشل التحديث على جيت هاب، تأكد من صحة التوكن.'
