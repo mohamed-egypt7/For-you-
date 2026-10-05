@@ -1,82 +1,99 @@
 import json
+import base64
 import requests
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    filters,
+)
 
-# 1. البيانات الخاصة بالبوت
+# ====================================================
+# 1. البيانات والإعدادات الأساسية
+# ====================================================
 BOT_TOKEN = "8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU"
 ADMIN_CHAT_ID = "8718173410"
 
-# 2. رابط Google Apps Script الخاص بجوجل شيت
-GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxAPL-k0nOCQugrFW0u8WaudCjftB5_qtQroUn03QbNHp0wdzvYopdnFZP3CUroTdvfRA/exec"
+# بيانات GitHub لتحديث ملف db.json تلقائياً
+GITHUB_REPO = "mohamed-egypt7/For-you-"
+# ضع توكن جيت هاب الخاص بك هنا (إذا كنت تستخدم GitHub API)
+GITHUB_TOKEN = "ضع_توكن_جيت_هاب_هنا"
 
-# 3. الرابط الأساسي الجديد لموقعك على Vercel
+# 🟢 الرابط المباشر والجديد لمنصة Vercel
 VERCEL_BASE_URL = "https://for-you-oot4.vercel.app"
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.message
-    if not message:
-        return
+# رابط Google Apps Script لردود الشيت
+GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxAPL-k0nOCQugrFW0u8WaudCjftB5_qtQroUn03QbNHp0wdzvYopdnFZP3CUroTdvfRA/exec"
 
-    # ----------------------------------------------------
-    # الحالة الأولى: رد الأدمن عبر التليجرام لإرسال الرد لجوجل شيت
-    # ----------------------------------------------------
-    if str(message.chat_id) == ADMIN_CHAT_ID and message.reply_to_message:
-        original_text = message.reply_to_message.text
-        admin_reply = message.text
+# مراحل إدخال البيانات لإنشاء صفحة جديدة
+NAME, SLUG, PASSWORD, MESSAGE_TEXT, SONG_TITLE, SONG_LINK = range(6)
 
-        # استخراج الـ IP الخاص بالزائر من نص الرسالة القديمة
-        visitor_ip = None
-        for line in original_text.split('\n'):
-            if "IP:" in line:
-                visitor_ip = line.split(":")[-1].strip()
-                break
 
-        if visitor_ip:
-            try:
-                payload = {
-                    "ip": visitor_ip,
-                    "message": "admin_reply",
-                    "reply": admin_reply
-                }
-                requests.post(GOOGLE_SCRIPT_URL, json=payload)
-                await message.reply_text(f"✅ تم إرسال الرد للزائر بنجاح:\n{admin_reply}")
-            except Exception as e:
-                await message.reply_text(f"❌ حدث خطأ أثناء الإرسال لجوجل شيت: {e}")
+# ====================================================
+# 2. دالة تحديث ملف db.json على GitHub
+# ====================================================
+def update_db_on_github(slug, new_entry):
+    """تحديث ملف db.json وإضافة البيانات بالرابط الجديد"""
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/db.json"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+
+    try:
+        res = requests.get(url, headers=headers)
+        if res.status_code == 200:
+            file_data = res.json()
+            sha = file_data["sha"]
+            content_decoded = base64.b64decode(file_data["content"]).decode("utf-8")
+            db_json = json.loads(content_decoded)
         else:
-            await message.reply_text("⚠️ لم يتم التعرف على الـ IP في هذه الرسالة.")
-        return
+            sha = None
+            db_json = {}
 
-    # ----------------------------------------------------
-    # الحالة الثانية: توليد رابط الصفحة الجديد للمستخدم على Vercel
-    # ----------------------------------------------------
-    # ملاحظة: إذا كان البوت يجمع بيانات من الزائر لإنشاء صفحة،
-    # سنقوم بتركيب الرابط الجديد على Vercel بدلاً من GitHub Pages.
-    user_text = message.text
-    
-    # مثال لتوليد الرابط بنفس الصيغة المطلوبة في الصورة:
-    # https://for-you-oot4.vercel.app/index.html?to=اسم_المستلم
-    recipient_name = user_text.strip()  # أو المتغير الذي تخزن فيه الاسم
-    
-    # بناء رابط Vercel المباشر بدلاً من github.io
-    direct_link = f"{VERCEL_BASE_URL}/index.html?to={recipient_name}"
-    
-    response_msg = (
-        "✅ تمت الإضافة وتحديث الموقع بنجاح!\n\n"
-        f"👤 لمن: {recipient_name}\n"
-        f"🔗 الرابط المباشر:\n{direct_link}\n\n"
-        "ال قائمة الرئيسية"
-    )
-    
-    # إرسال النتيجة للمستخدم
-    # await message.reply_text(response_msg)
+        # إضافة البيانات والرابط الجديد
+        db_json[slug] = new_entry
+
+        updated_content = json.dumps(db_json, ensure_ascii=False, indent=2)
+        encoded_content = base64.b64encode(updated_content.encode("utf-8")).decode("utf-8")
+
+        payload = {
+            "message": f"Update db.json for {slug} via Bot",
+            "content": encoded_content,
+        }
+        if sha:
+            payload["sha"] = sha
+
+        requests.put(url, headers=headers, json=payload)
+    except Exception as e:
+        print(f"Error updating github: {e}")
 
 
-def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-    print("🤖 بوت تليجرام يعمل الآن ومربوط بـ Vercel و Google Sheets...")
-    app.run_polling()
+# ====================================================
+# 3. خطوات إنشاء وتحديث البيانات عبر البوت
+# ====================================================
+async def start_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("1️⃣ أرسل اسم الشخص (لمن):")
+    return NAME
 
-if __name__ == "__main__":
-    main()
+async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['name'] = update.message.text.strip()
+    await update.message.reply_text("2️⃣ أرسل كود/اسم الرابط (Slug):")
+    return SLUG
+
+async def get_slug(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['slug'] = update.message.text.strip()
+    await update.message.reply_text("3️⃣ أرسل كلمة السر (الباسورد):")
+    return PASSWORD
+
+async def get_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['password'] = update.message.text.strip()
+    await update.message.reply_text("4️⃣ أرسل الرسالة:")
+    return MESSAGE_TEXT
+
+async def get_message_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data['message'] = update.message.text.strip()
+    await update.message.reply_text("5️⃣
