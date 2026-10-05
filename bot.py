@@ -1,115 +1,98 @@
-import telegram
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import (
-    ApplicationBuilder,
-    CallbackQueryHandler,
-    CommandHandler,
-    ContextTypes,
+import base64
+import json
+import os
+import requests
+import telebot
+
+# بيانات البوت وشات آي دي الخاصة بك
+TOKEN = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU'
+ADMIN_CHAT_ID = '972616130'
+
+# بيانات جيت هاب لتحديث ملف db.json أوتوماتيك
+GITHUB_TOKEN = (  # ضع هنا توكن جيت هاب الخاص بك بصلاحية repo
+    'YOUR_GITHUB_TOKEN'
 )
+REPO_OWNER = 'mohamed-egypt7'
+REPO_NAME = 'For-you-'
+FILE_PATH = 'db.json'
 
-# ضع توكن البوت الخاص بك هنا
-TOKEN = "YOUR_BOT_TOKEN_HERE"
-
-# قاعدة بيانات الصفحات (يمكنك تعديلها أو ربطها بملف json دائم)
-pages_db = {
-    "mok": {
-        "name": "محمد ياسر",
-        "password": "123",
-        "message": "أهلاً بك يا مهندس محمد في رسالتك السرية",
-    }
-}
+bot = telebot.TeleBot(TOKEN)
 
 
-# أمر البداية وعرض لوحة التحكم بالأزرار
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  keyboard = []
-  for slug, data in pages_db.items():
-    keyboard.append([
-        InlineKeyboardButton(
-            f"📄 {data['name']} ({slug})", callback_data=f"view_{slug}"
-        ),
-        InlineKeyboardButton(f"🗑️ حذف", callback_data=f"del_{slug}"),
-    ])
+def get_db_from_github():
+  url = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}'
+  headers = {'Authorization': f'token {GITHUB_TOKEN}'}
+  r = requests.get(url, headers=headers)
+  if r.status_code == 200:
+    file_info = r.json()
+    content = requests.get(file_info['download_url']).text
+    return json.loads(content), file_info['sha']
+  return {}, None
 
-  keyboard.append(
-      [InlineKeyboardButton("➕ إضافة صفحة جديدة", callback_data="add_page")]
+
+def update_db_on_github(data, sha, commit_message):
+  url = f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}'
+  headers = {'Authorization': f'token {GITHUB_TOKEN}'}
+  content_encoded = base64.b64encode(
+      json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8')
+  ).decode('utf-8')
+  payload = {'message': commit_message, 'content': content_encoded, 'sha': sha}
+  r = requests.put(url, headers=headers, json=payload)
+  return r.status_code in [200, 201]
+
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+  if str(message.chat.id) != str(ADMIN_CHAT_ID):
+    bot.reply_to(message, 'عذراً، هذا البوت مخصص للمالك فقط.')
+    return
+  bot.reply_to(
+      message,
+      'أهلاً بك يا محمد! 🚀 بوت الإدارة الشغال 24/7 جاهز.\nلإضافة شخص أو'
+      ' بيانات جديدة استخدم الأمر:\n`/add الاسم كلمة_المرور الرابط`',
   )
-  reply_markup = InlineKeyboardMarkup(keyboard)
-
-  await update.message.reply_text(
-      "🎛️ *لوحة تحكم النظام (تيليجرام):*\nاختر الإجراء المطلوبة:",
-      reply_markup=reply_markup,
-      parse_mode="Markdown",
-  )
 
 
-# إدارة ضغط الأزرار التفاعلية
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  query = update.callback_query
-  await query.answer()
-  data = query.data
-
-  if data.startswith("view_"):
-    slug = data.split("_")[1]
-    page = pages_db.get(slug)
-    if page:
-      msg = (
-          f"📄 *تفاصيل الصفحة:*\n- المعرف: `{slug}`\n- الاسم:"
-          f" {page['name']}\n- الباسورد: `{page['password']}`\n- الرسالة:"
-          f" {page['message']}"
-      )
-      await query.edit_message_text(text=msg, parse_mode="Markdown")
-
-  elif data.startswith("del_"):
-    slug = data.split("_")[1]
-    if slug in pages_db:
-      del pages_db[slug]
-      await query.edit_message_text(
-          text=f"✅ تم حذف الصفحة ({slug}) بنجاح!\nاضغط /start للرجوع للقائمة."
-      )
-
-  elif data == "add_page":
-    await query.edit_message_text(
-        text=(
-            "➕ لإضافة صفحة جديدة، أرسل الأمر بهذا الشكل:\n`/new"
-            " slug|الاسم|الباسورد|الرسالة`"
-        ),
-        parse_mode="Markdown",
-    )
-
-
-# أمر إضافة صفحة سريعة عبر التيليجرام
-async def new_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@bot.message_handler(commands=['add'])
+def add_item(message):
+  if str(message.chat.id) != str(ADMIN_CHAT_ID):
+    return
   try:
-    text = " ".join(context.args)
-    slug, name, password, message = text.split("|")
-    pages_db[slug.strip()] = {
-        "name": name.strip(),
-        "password": password.strip(),
-        "message": message.strip(),
-    }
-    await update.message.reply_text(
-        f"✅ تمت إضافة صفحة ({name.strip()}) بنجاح! اطلب /start لعرض القائمة."
+    parts = message.text.split(maxsplit=3)
+    if len(parts) < 4:
+      bot.reply_to(
+          message,
+          'خطأ في الصيغة! استخدم الأمر بهذا الشكل:\n`/add الاسم كلمة_المرور'
+          ' الرابط`',
+      )
+      return
+
+    _, name, password, link = parts
+
+    db_data, sha = get_db_from_github()
+    if sha is None and not db_data:
+      db_data = {}
+
+    db_data[name] = {'password': password, 'link': link}
+
+    success = update_db_on_github(
+        db_data, sha, f'Add {name} via 24/7 Telegram Bot'
     )
-  except Exception:
-    await update.message.reply_text(
-        "❌ خطأ في الصيغة. استخدم الأمر هكذا:\n`/new"
-        " slug|الاسم|الباسورد|الرسالة`",
-        parse_mode="Markdown",
-    )
+    if success:
+      bot.reply_to(
+          message,
+          f'✅ تمت الإضافة ونشر البيانات بنجاح لـ: *{name}*',
+          parse_mode='Markdown',
+      )
+    else:
+      bot.reply_to(
+          message,
+          '❌ فشل التحديث على جيت هاب، تأكد من صحة صلاحيات الـ GitHub Token.',
+      )
+  except Exception as e:
+    bot.reply_to(message, f'حدث خطأ: {e}')
 
 
-def main():
-  app = ApplicationBuilder().token(TOKEN).build()
-  app.add_handler(CommandHandler("start", start))
-  app.add_handler(CommandHandler("new", new_page))
-  app.add_handler(CallbackQueryHandler(button_handler))
-
-  print("بوت تيليجرام يعمل الآن بكامل الصلاحيات والأزرار...")
-  app.run_polling()
-
-
-if __name__ == "__main__":
-  import asyncio
-
-  asyncio.run(main())
+if __name__ == '__main__':
+  print('Bot is running 24/7...')
+  bot.infinity_polling()
