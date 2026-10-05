@@ -7,9 +7,13 @@ from telebot import types
 TOKEN = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU'
 ADMIN_CHAT_ID = '8718173410'
 
-GITHUB_TOKEN = (
-    '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'
-)
+# قراءة التوكن محلياً من ملف my_token.txt بأمان تام
+try:
+  with open('my_token.txt', 'r', encoding='utf-8') as f:
+    GITHUB_TOKEN = f.read().strip()
+except FileNotFoundError:
+  GITHUB_TOKEN = 'YOUR_GITHUB_TOKEN'
+
 REPO_OWNER = 'mohamed-egypt7'
 REPO_NAME = 'For-you-'
 FILE_PATH = 'db.json'
