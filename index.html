@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رسالة سرية مخصصة</title>
+    <title>رسالة خاصة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -61,7 +61,7 @@
 
         h2 {
             margin: 0;
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 700;
             color: #ffffff;
         }
@@ -73,9 +73,10 @@
 
         .subtitle {
             color: #8b949e;
-            font-size: 13px;
-            margin-top: 6px;
+            font-size: 14px;
+            margin-top: 10px;
             margin-bottom: 25px;
+            line-height: 1.5;
         }
 
         input[type="password"] {
@@ -246,16 +247,16 @@
 <body>
 
     <div class="card" id="mainContainer">
-        <!-- الشاشة الأولى: طلب كلمة المرور -->
+        <!-- الشاشة الأولى: طلب كلمة المرور بالتعديل اللفظي المطلوب -->
         <div id="loginView">
             <div class="heart-box">
-                <i class="fa-solid fa-lock" style="color: white;"></i>
+                <i class="fa-solid fa-heart" style="color: white;"></i>
             </div>
-            <h2>كلمة المرور مطلوبة</h2>
-            <p class="subtitle">أدخل كلمة المرور الخاصة بك لعرض الرسالة والموسيقى</p>
-            <input type="password" id="passInput" placeholder="اكتب كلمة المرور هنا..." onkeypress="handleKeyPress(event)">
+            <h2>رسالة خاصة 💌</h2>
+            <p class="subtitle" id="lockSubtitle">اكتب الباسورد علشان تقرأ الرسالة يا سارة</p>
+            <input type="password" id="passInput" placeholder="اكتب الباسورد هنا..." onkeypress="if(event.key==='Enter') verifyPassword();">
             <button class="btn" onclick="verifyPassword()">
-                <i class="fa-solid fa-key"></i> فتح الرسالة
+                <i class="fa-solid fa-envelope-open"></i> فتح الرسالة
             </button>
             <div id="errorMsg" class="error"></div>
         </div>
@@ -265,37 +266,144 @@
         let dbData = {};
         let currentSlug = "";
 
-        // جلب البيانات مع إلغاء الكاش لمنع استرجاع الأغاني القديمة
-        async function fetchDatabase() {
+        function getSlug() {
             const urlParams = new URLSearchParams(window.location.search);
-            currentSlug = urlParams.get('to');
-            
-            if (!currentSlug && window.location.hash) {
-                currentSlug = decodeURIComponent(window.location.hash.substring(1));
+            let slug = urlParams.get('to');
+            if (!slug && window.location.hash) {
+                slug = decodeURIComponent(window.location.hash.substring(1));
             }
+            return slug || "first";
+        }
 
-            if (!currentSlug) currentSlug = "first";
+        currentSlug = getSlug();
 
+        async function fetchDatabase() {
             try {
-                // إضافة timestamp لمنع المتصفح من كاش الملف القديم
                 const res = await fetch('db.json?t=' + Date.now());
-                dbData = await res.json();
+                if (res.ok) {
+                    dbData = await res.json();
+                    if (dbData[currentSlug] && dbData[currentSlug].name) {
+                        const targetName = dbData[currentSlug].name;
+                        document.getElementById('lockSubtitle').innerText = `اكتب الباسورد علشان تقرأ الرسالة يا ${targetName}`;
+                    }
+                }
             } catch (e) {
-                console.log("خطأ في الاتصال بقاعدة البيانات");
+                console.log("خطأ في الاتصال بقاعدة البيانات:", e);
             }
         }
 
         fetchDatabase();
 
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') verifyPassword();
-        }
-
-        function verifyPassword() {
-            const enteredPass = document.getElementById('passInput').value.trim();
+        async function verifyPassword() {
+            const passInput = document.getElementById('passInput');
             const errorDiv = document.getElementById('errorMsg');
+            const enteredPass = passInput.value.trim();
+
+            if (!enteredPass) {
+                errorDiv.innerText = 'يرجى كتابة الباسورد أولاً!';
+                return;
+            }
+
+            errorDiv.innerText = 'جاري التحقق...';
+
+            if (Object.keys(dbData).length === 0) {
+                await fetchDatabase();
+            }
 
             const userInfo = dbData[currentSlug];
-            
-            // التحقق من كلمة المرور المسجلة لهذا المستخدم في db.json
-            const correctPass = userInfo ? userInfo.password :
+            let correctPass = userInfo ? (userInfo.password ? userInfo.password.toString().trim() : "1234") : "1234";
+
+            if (enteredPass === correctPass) {
+                showContent(userInfo);
+            } else {
+                errorDiv.innerText = 'كلمة المرور غير صحيحة، حاول مرة أخرى.';
+            }
+        }
+
+        function showContent(userInfo) {
+            const recipientName = userInfo ? (userInfo.name || currentSlug) : currentSlug;
+            const messageText = userInfo ? (userInfo.message || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.") : "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
+            const songUrl = (userInfo && userInfo.song_link && userInfo.song_link.startsWith('http')) 
+                            ? userInfo.song_link 
+                            : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+
+            document.getElementById('mainContainer').innerHTML = `
+                <div class="heart-box">
+                    <i class="fa-solid fa-heart" style="color: white;"></i>
+                </div>
+                <h2>رسالة إلى: <span id="recipientName">${recipientName}</span></h2>
+                <p class="subtitle">رسالة سرية مخصصة</p>
+
+                <div class="quote-box">
+                    <i class="fa-solid fa-quote-right quote-mark-right"></i>
+                    <p>${messageText}</p>
+                    <i class="fa-solid fa-quote-left quote-mark-left"></i>
+                </div>
+
+                <audio id="bgAudio" src="${songUrl}" loop></audio>
+                
+                <div class="music-player">
+                    <button class="play-btn" id="playBtn" onclick="togglePlay()"><i class="fa-solid fa-play"></i> تشغيل</button>
+                    <div class="music-info">
+                        <p class="title">مقطوعة هادئة</p>
+                        <p class="desc">موسيقى استرخاء</p>
+                    </div>
+                    <div class="music-icon-box">
+                        <i class="fa-solid fa-music"></i>
+                    </div>
+                </div>
+
+                <div class="reply-section">
+                    <label>رد على المرسل (بشكل مجهول):</label>
+                    <textarea id="replyMsg" placeholder="اكتب ردك هنا..."></textarea>
+                    <button class="btn" onclick="sendReply('${recipientName}')">
+                        <i class="fa-solid fa-paper-plane"></i> إرسال الرد سراً
+                    </button>
+                </div>
+            `;
+        }
+
+        function togglePlay() {
+            const audio = document.getElementById('bgAudio');
+            const playBtn = document.getElementById('playBtn');
+            if (audio.paused) {
+                audio.play();
+                playBtn.innerHTML = '<i class="fa-solid fa-pause"></i> إيقاف';
+            } else {
+                audio.pause();
+                playBtn.innerHTML = '<i class="fa-solid fa-play"></i> تشغيل';
+            }
+        }
+
+        const botToken = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU';
+        const chatId = '8718173410';
+
+        function sendReply(name) {
+            const message = document.getElementById('replyMsg').value.trim();
+            if (!message) {
+                alert('الرجاء كتابة رد أولاً!');
+                return;
+            }
+
+            const textToTelegram = `💌 رد جديد من (${name}):\n\n${message}`;
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: textToTelegram })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    alert('تم إرسال الرد سراً بنجاح! شكراً لك.');
+                    document.getElementById('replyMsg').value = '';
+                } else {
+                    alert('حدث خطأ أثناء الإرسال.');
+                }
+            })
+            .catch(() => alert('تأكد من اتصالك بالإنترنت.'));
+        }
+    </script>
+</body>
+</html>
