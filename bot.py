@@ -83,7 +83,7 @@ def start_command(message):
 
   bot.send_message(
       message.chat.id,
-      'أهلاً بك يا محمد! 🚀 لوحة تحكم الموقع جاهزة.\nاختر ما تحب فعله:',
+      'أهلاً بك يا محمد! 🚀 لوحة تحكم الموقع الشاملة جاهزة.\nاختر ما تحب فعله:',
       reply_markup=main_menu(),
   )
 
@@ -100,7 +100,7 @@ def callback_add(call):
   )
 
 
-# زر عرض المستخدمين مع روابطهم المتولدة
+# زر عرض المستخدمين
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_list')
 def callback_list(call):
   chat_id = call.message.chat.id
@@ -113,10 +113,13 @@ def callback_list(call):
   text = '📋 **قائمة المستخدمين المسجلين:**\n\n'
   for name, info in db_data.items():
     pwd = info.get('password', '')
-    lnk = info.get(
-        'link', f'https://{REPO_OWNER}.github.io/{REPO_NAME}/#{name}'
+    song_link = info.get('song_link', 'لا يوجد')
+    page_link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/user.html#{name}'
+    text += (
+        f'👤 **الاسم:** `{name}`\n🔑 **الباسورد:** `{pwd}`\n🔗 **رابط'
+        f' الصفحة:** [اضغط هنا]({page_link})\n🎵 **رابط الأغنية:**'
+        f' {song_link}\n------------------\n'
     )
-    text += f'👤 **الاسم:** `{name}`\n🔑 **الباسورد:** `{pwd}`\n🔗 **الرابط:** [اضغط هنا لفتح الصفحة]({lnk})\n------------------\n'
 
   markup = types.InlineKeyboardMarkup()
   markup.add(
@@ -202,7 +205,7 @@ def callback_main_menu(call):
   )
 
 
-# خطوات إضافة المستخدم (تم اختصارها لطلب الاسم والباسورد فقط وتوليد الرابط تلقائياً)
+# خطوات الإضافة المتقدمة (الاسم -> الباسورد -> رابط الأغنية)
 @bot.message_handler(
     func=lambda m: str(m.chat.id) == str(ADMIN_CHAT_ID)
     and m.chat.id in user_steps
@@ -220,52 +223,67 @@ def handle_steps(message):
     )
 
   elif step == 'waiting_for_pass':
-    password = text
+    temp_data[chat_id]['password'] = text
+    user_steps[chat_id] = 'waiting_for_song'
+    bot.reply_to(
+        message,
+        '🎵 رائع! أرسل الآن **رابط الأغنية** (أو اكتب `لا` لو مفيش):',
+        parse_mode='Markdown',
+    )
+
+  elif step == 'waiting_for_song':
+    song_link = '' if text.lower() == 'لا' else text
+    temp_data[chat_id]['song_link'] = song_link
+
     name = temp_data[chat_id]['name']
+    password = temp_data[chat_id]['password']
 
-    # تنظيف الحالة
     del user_steps[chat_id]
-
-    # توليد الرابط تلقائياً بناءً على اسم المستخدم والموقع
-    link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/#{name}'
 
     bot.reply_to(message, '⏳ جاري رفع البيانات وتحديث جيت هاب، ثواني...')
 
-  # توليد الرابط ودعم الخطوة بشكل نهائي
-  db_data, sha = get_db()
-  if not db_data:
-    db_data = {}
+    db_data, sha = get_db()
+    if not db_data:
+      db_data = {}
 
-  db_data[name] = {'password': password, 'link': link}
+    # رابط الصفحة المخصص للعميل
+    page_link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/user.html#{name}'
 
-  success = update_db(db_data, sha, f'Add {name} via Button Bot')
-  if success:
-    markup = types.InlineKeyboardMarkup()
-    markup.add(
-        types.InlineKeyboardButton(
-            '🔙 القائمة الرئيسية', callback_data='main_menu'
-        )
-    )
+    db_data[name] = {
+        'password': password,
+        'song_link': song_link,
+        'link': page_link,
+    }
 
-    msg_text = (
-        f'✅ تمت الإضافة وتوليد الرابط بنجاح!\n\n'
-        f'👤 الاسم: `{name}`\n'
-        f'🔑 الباسورد: `{password}`\n'
-        f'🔗 الرابط المتولد: [اضغط هنا لفتح الصفحة]({link})'
-    )
-    bot.send_message(
-        chat_id,
-        msg_text,
-        parse_mode='Markdown',
-        reply_markup=markup,
-        disable_web_page_preview=True,
-    )
-  else:
-    bot.send_message(
-        chat_id, '❌ فشل التحديث على جيت هاب، تأكد من صحة الصلاحيات.'
-    )
+    success = update_db(db_data, sha, f'Add {name} with song via Bot')
+    if success:
+      markup = types.InlineKeyboardMarkup()
+      markup.add(
+          types.InlineKeyboardButton(
+              '🔙 القائمة الرئيسية', callback_data='main_menu'
+          )
+      )
+
+      msg_text = (
+          f'✅ تمت الإضافة وتوليد الصفحة بنجاح!\n\n'
+          f'👤 الاسم: `{name}`\n'
+          f'🔑 الباسورد: `{password}`\n'
+          f'🔗 رابط صفحة العميل: [اضغط هنا لفتح الصفحة]({page_link})\n'
+          f'🎵 رابط الأغنية: {song_link if song_link else "لا يوجد"}'
+      )
+      bot.send_message(
+          chat_id,
+          msg_text,
+          parse_mode='Markdown',
+          reply_markup=markup,
+          disable_web_page_preview=True,
+      )
+    else:
+      bot.send_message(
+          chat_id, '❌ فشل التحديث على جيت هاب، تأكد من صحة الصلاحيات.'
+      )
 
 
 if __name__ == '__main__':
-  print('Bot with auto-link generator is running...')
+  print('Bot with complete song feature is running...')
   bot.infinity_polling()
