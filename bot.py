@@ -37,7 +37,10 @@ def get_db():
   if r.status_code == 200:
     info = r.json()
     content = requests.get(info['download_url']).text
-    return json.loads(content), info['sha']
+    try:
+      return json.loads(content), info['sha']
+    except:
+      return {}, info['sha']
   return {}, None
 
 
@@ -60,13 +63,13 @@ def update_db(data, sha, msg):
 def main_menu():
   markup = types.InlineKeyboardMarkup(row_width=1)
   btn_add = types.InlineKeyboardButton(
-      '➕ إضافة مستخدم جديد', callback_data='btn_add'
+      '➕ إنشاء رسالة جديدة', callback_data='btn_add'
   )
   btn_list = types.InlineKeyboardButton(
-      '📋 عرض كل المستخدمين', callback_data='btn_list'
+      '📋 عرض كل الرسائل', callback_data='btn_list'
   )
   btn_del = types.InlineKeyboardButton(
-      '🗑️ حذف مستخدم', callback_data='btn_del_menu'
+      '🗑️ حذف رسالة', callback_data='btn_del_menu'
   )
   markup.add(btn_add, btn_list, btn_del)
   return markup
@@ -79,7 +82,7 @@ def start_command(message):
     return
   bot.send_message(
       message.chat.id,
-      'أهلاً بك يا محمد! 🚀 لوحة التحكم جاهزة:',
+      'أهلاً بك يا محمد! 🚀 لوحة تحكم الرسائل جاهزة:',
       reply_markup=main_menu(),
   )
 
@@ -90,7 +93,9 @@ def callback_add(call):
   user_steps[chat_id] = 'waiting_for_name'
   temp_data[chat_id] = {}
   bot.answer_callback_query(call.id)
-  bot.send_message(chat_id, '👤 أرسل الآن اسم المستخدم (Key):')
+  bot.send_message(
+      chat_id, '👤 اكتب **اسم الشخص** (رسالة إلى مين، مثل: محمد أو أحمد):'
+  )
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_list')
@@ -99,17 +104,15 @@ def callback_list(call):
   bot.answer_callback_query(call.id)
   db_data, _ = get_db()
   if not db_data:
-    bot.send_message(chat_id, '📭 قاعدة البيانات فارغة حالياً.')
+    bot.send_message(chat_id, '📭 لا توجد أي رسائل مسجلة حالياً.')
     return
 
-  text = '📋 قائمة المستخدمين المسجلين:\n\n'
+  text = '📋 قائمة الرسائل المسجلة:\n\n'
   for name, info in db_data.items():
-    pwd = info.get('password', '')
-    song_link = info.get('song_link', 'لا يوجد')
-    page_link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/user.html#{name}'
+    slug = info.get('slug', name)
+    page_link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/index.html?to={slug}'
     text += (
-        f'👤 الاسم: {name}\n🔑 الباسورد: {pwd}\n🔗 رابط الصفحة: {page_link}\n🎵'
-        f' الأغنية: {song_link}\n------------------\n'
+        f'👤 الاسم: {name}\n🔗 الرابط: {page_link}\n------------------\n'
     )
 
   markup = types.InlineKeyboardMarkup()
@@ -125,7 +128,7 @@ def callback_del_menu(call):
   bot.answer_callback_query(call.id)
   db_data, _ = get_db()
   if not db_data:
-    bot.send_message(chat_id, '📭 لا يوجد أي مستخدمين للحذف.')
+    bot.send_message(chat_id, '📭 لا توجد رسائل للحذف.')
     return
 
   markup = types.InlineKeyboardMarkup(row_width=1)
@@ -138,7 +141,7 @@ def callback_del_menu(call):
   markup.add(
       types.InlineKeyboardButton('🔙 القائمة الرئيسية', callback_data='main_menu')
   )
-  bot.send_message(chat_id, '🗑️ اختر المستخدم الذي تريد حذفه:', reply_markup=markup)
+  bot.send_message(chat_id, '🗑️ اختر الرسالة التي تريد حذفها:', reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('del_'))
@@ -146,6 +149,7 @@ def callback_execute_delete(call):
   chat_id = call.message.chat.id
   name_to_del = call.data.replace('del_', '', 1)
   bot.answer_callback_query(call.id)
+  bot.send_message(chat_id, f'⏳ جاري حذف رسالة {name_to_del}...')
   db_data, sha = get_db()
   if name_to_del in db_data:
     del db_data[name_to_del]
@@ -158,14 +162,12 @@ def callback_execute_delete(call):
           )
       )
       bot.send_message(
-          chat_id,
-          f'✅ تم حذف المستخدم {name_to_del} بنجاح!',
-          reply_markup=markup,
+          chat_id, f'✅ تم حذف رسالة {name_to_del} بنجاح!', reply_markup=markup
       )
     else:
       bot.send_message(chat_id, '❌ فشل التحديث على جيت هاب.')
   else:
-    bot.send_message(chat_id, '⚠️ المستخدم غير موجود.')
+    bot.send_message(chat_id, '⚠️ غير موجودة بالفعل.')
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'main_menu')
@@ -186,34 +188,52 @@ def handle_steps(message):
 
   if step == 'waiting_for_name':
     temp_data[chat_id]['name'] = text
-    user_steps[chat_id] = 'waiting_for_pass'
-    bot.reply_to(message, '🔑 أرسل الآن كلمة المرور:')
+    user_steps[chat_id] = 'waiting_for_slug'
+    bot.reply_to(
+        message,
+        '🔗 أرسل الآن **اللينك الخاص** (مثال: `mohamed` أو `ggg` ليظهر في'
+        ' الرابط):',
+        parse_mode='Markdown',
+    )
 
-  elif step == 'waiting_for_pass':
-    temp_data[chat_id]['password'] = text
+  elif step == 'waiting_for_slug':
+    temp_data[chat_id]['slug'] = text
+    user_steps[chat_id] = 'waiting_for_msg'
+    bot.reply_to(
+        message, '💬 أرسل الآن **نص الرسالة** التي ستظهر داخل صندوق الاقتباس:'
+    )
+
+  elif step == 'waiting_for_msg':
+    temp_data[chat_id]['custom_message'] = text
     user_steps[chat_id] = 'waiting_for_song'
-    bot.reply_to(message, '🎵 أرسل الآن رابط الأغنية (أو اكتب لا لو مفيش):')
+    bot.reply_to(
+        message, '🎵 أرسل الآن **رابط الأغنية** (أو اكتب `لا` لو مفيش):'
+    )
 
   elif step == 'waiting_for_song':
-    song_link = '' if text.lower() == 'لا' else text
+    song_link = '' if text.lower() in ['لا', 'no'] else text
     name = temp_data[chat_id]['name']
-    password = temp_data[chat_id]['password']
+    slug = temp_data[chat_id]['slug']
+    custom_msg = temp_data[chat_id]['custom_message']
     del user_steps[chat_id]
 
-    bot.reply_to(message, '⏳ جاري الحفظ والتحديث فوراً...')
+    bot.reply_to(message, '⏳ جاري الحفظ ورفع البيانات على جيت هاب...')
 
     db_data, sha = get_db()
     if not db_data:
       db_data = {}
 
-    page_link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/user.html#{name}'
-    db_data[name] = {
-        'password': password,
+    page_link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/index.html?to={slug}'
+
+    db_data[slug] = {
+        'name': name,
+        'slug': slug,
+        'message': custom_msg,
         'song_link': song_link,
         'link': page_link,
     }
 
-    success = update_db(db_data, sha, f'Add user {name}')
+    success = update_db(db_data, sha, f'Add message for {name}')
     if success:
       markup = types.InlineKeyboardMarkup()
       markup.add(
@@ -222,15 +242,15 @@ def handle_steps(message):
           )
       )
       msg_text = (
-          f'✅ تمت الإضافة بنجاح!\n\n👤 الاسم: {name}\n🔑 الباسورد:'
-          f' {password}\n🔗 رابط صفحة العميل:\n{page_link}\n🎵 الأغنية:'
+          f'✅ تمت الإضافة بنجاح!\n\n👤 لمن: {name}\n🔗 الرابط:\n{page_link}\n💬'
+          f' الرسالة: {custom_msg}\n🎵 الأغنية:'
           f' {song_link if song_link else "لا يوجد"}'
       )
       bot.send_message(chat_id, msg_text, reply_markup=markup)
     else:
-      bot.send_message(chat_id, '❌ حدث خطأ في الاتصال بجيت هاب.')
+      bot.send_message(chat_id, '❌ حدث خطأ أثناء التحديث على جيت هاب.')
 
 
 if __name__ == '__main__':
-  print('Bot is running smoothly...')
+  print('Bot is running successfully...')
   bot.infinity_polling()
