@@ -7,7 +7,9 @@ from telebot import types
 TOKEN = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU'
 ADMIN_CHAT_ID = '8718173410'
 
-GITHUB_TOKEN = 'YOUR_GITHUB_TOKEN'  # حط توكن جيت هاب هنا
+GITHUB_TOKEN = (
+    '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'
+)
 REPO_OWNER = 'mohamed-egypt7'
 REPO_NAME = 'For-you-'
 FILE_PATH = 'db.json'
@@ -137,7 +139,7 @@ def handle_steps(message):
       bot.send_message(chat_id, msg_text, reply_markup=markup)
     else:
       bot.send_message(
-          chat_id, '❌ فشل التحديث على جيت هاب، تأكد من صحة التوكن.'
+          chat_id, '❌ فشل التحديث على جيت هاب، تأكد من صحة الصلاحيات.'
       )
 
 
