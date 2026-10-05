@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import requests
 import telebot
 from telebot import types
@@ -7,12 +8,17 @@ from telebot import types
 TOKEN = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU'
 ADMIN_CHAT_ID = '8718173410'
 
-# قراءة التوكن محلياً من ملف my_token.txt بأمان تام
+# قراءة التوكن محلياً مع فحص دقيق وطباعة الحالة
+GITHUB_TOKEN = 'YOUR_GITHUB_TOKEN'
 try:
-  with open('my_token.txt', 'r', encoding='utf-8') as f:
-    GITHUB_TOKEN = f.read().strip()
-except FileNotFoundError:
-  GITHUB_TOKEN = 'YOUR_GITHUB_TOKEN'
+  if os.path.exists('my_token.txt'):
+    with open('my_token.txt', 'r', encoding='utf-8') as f:
+      GITHUB_TOKEN = f.read().strip()
+    print(f'✅ تم قراءة التوكن المحلي بنجاح! (طوله: {len(GITHUB_TOKEN)})')
+  else:
+    print('⚠️ تحذير: ملف my_token.txt غير موجود في هذا المجلد!')
+except Exception as e:
+  print('❌ خطأ في قراءة ملف التوكن:', e)
 
 REPO_OWNER = 'mohamed-egypt7'
 REPO_NAME = 'For-you-'
@@ -29,12 +35,18 @@ def get_db():
   url = (
       f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}'
   )
-  headers = {'Authorization': f'token {GITHUB_TOKEN}'}
+  headers = {
+      'Authorization': f'Bearer {GITHUB_TOKEN}',
+      'Accept': 'application/vnd.github+json',
+  }
   r = requests.get(url, headers=headers)
+  print(f'📡 استعلام جيت هاب - كود الاستجابة: {r.status_code}')
   if r.status_code == 200:
     info = r.json()
     content = requests.get(info['download_url']).text
     return json.loads(content), info['sha']
+  else:
+    print('❌ تفاصيل خطأ الجلب:', r.text)
   return {}, None
 
 
@@ -42,12 +54,18 @@ def update_db(data, sha, msg):
   url = (
       f'https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}'
   )
-  headers = {'Authorization': f'token {GITHUB_TOKEN}'}
+  headers = {
+      'Authorization': f'Bearer {GITHUB_TOKEN}',
+      'Accept': 'application/vnd.github+json',
+  }
   encoded = base64.b64encode(
       json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8')
   ).decode('utf-8')
   payload = {'message': msg, 'content': encoded, 'sha': sha}
   r = requests.put(url, headers=headers, json=payload)
+  print(f'📡 تحديث جيت هاب - كود الاستجابة: {r.status_code}')
+  if r.status_code not in [200, 201]:
+    print('❌ تفاصيل خطأ التحديث:', r.text)
   return r.status_code in [200, 201]
 
 
