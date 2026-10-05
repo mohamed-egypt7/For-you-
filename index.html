@@ -3,177 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الرسالة الخاصة</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>لوحة التحكم - إدارة الروابط</title>
     <style>
-        body { 
-            font-family: 'Cairo', sans-serif; 
-            background: #070913; 
-            color: white; 
-            min-height: 100vh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             padding: 20px;
-            user-select: none;
-            -webkit-user-select: none;
         }
-        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
-        .protected-content { transition: filter 0.2s ease-in-out; }
-        .blurred-screen { filter: blur(25px) !important; opacity: 0.1; }
+        .container {
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid #30363d;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #f0f6fc;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #8b949e;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            border-color: #58a6ff;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: opacity 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .status {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
     </style>
 </head>
-<body class="w-full max-w-md mx-auto protected-content" id="main-body">
+<body>
 
-    <!-- شاشة إدخال كلمة المرور -->
-    <div id="password-screen" class="glass-panel p-8 w-full text-center space-y-6">
-        <div class="w-16 h-16 bg-pink-500/10 border border-pink-500/20 rounded-2xl flex items-center justify-center mx-auto text-pink-400 text-2xl">
-            <i class="fas fa-lock"></i>
-        </div>
-        <div>
-            <h1 id="recipient-title" class="text-xl font-bold text-pink-400">جاري تحميل الرسالة...</h1>
-            <p class="text-xs text-gray-400 mt-1">الرجاء الانتظار قليلاً</p>
-        </div>
-        <div class="space-y-4" id="pass-box" style="display:none;">
-            <input type="password" id="password-input" placeholder="أدخل كلمة المرور..." class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-center text-white focus:outline-none focus:border-pink-500 font-mono text-lg">
-            <button onclick="checkPassword()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-4 rounded-xl transition shadow-lg text-sm">
-                فتح الرسالة <i class="fas fa-key mr-2"></i>
-            </button>
-        </div>
+<div class="container">
+    <h2>لوحة التحكم الإدارية</h2>
+    
+    <div class="form-group">
+        <label>GitHub Personal Access Token</label>
+        <input type="password" id="ghToken" placeholder="أدخل توكن جيت هاب هنا">
     </div>
 
-    <!-- شاشة الرسالة السرية -->
-    <div id="message-screen" class="glass-panel p-8 w-full space-y-6 hidden text-right">
-        <div class="flex flex-col items-center text-center space-y-3">
-            <h2 id="display-name" class="text-2xl font-bold text-pink-400"></h2>
-        </div>
-
-        <div class="bg-white/5 p-5 rounded-2xl border border-white/5 text-gray-200 leading-relaxed text-sm whitespace-pre-wrap" id="display-message"></div>
-
-        <audio id="bg-audio" loop></audio>
-
-        <!-- خانة الرد -->
-        <div class="space-y-3 pt-4 border-t border-white/10">
-            <label class="block text-xs text-pink-300 font-semibold">اكتب رسالتك أو ردك للشخص:</label>
-            <textarea id="reply-text" rows="3" placeholder="اكتب ردك هنا..." class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-pink-500 resize-none"></textarea>
-            <button onclick="sendReply()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition text-sm">
-                إرسال إلى الشخص <i class="fas fa-paper-plane mr-2"></i>
-            </button>
-        </div>
+    <div class="form-group">
+        <label>اسم الشخص / المفتاح (Key)</label>
+        <input type="text" id="personName" placeholder="مثال: ahmed">
     </div>
 
-    <script>
-        let currentSlug = '';
-        let pageData = {};
+    <div class="form-group">
+        <label>كلمة المرور</label>
+        <input type="text" id="personPass" placeholder="كلمة المرور الخاصة به">
+    </div>
 
-        const BOT_TOKEN = '8891748364:AAGHnBFyQfivzTJurW-Hnz7ndvq5FM2J7p8'; 
-        const CHAT_ID = '8557873303';       
+    <div class="form-group">
+        <label>رابط الأغنية أو الصفحة المباشر (اختياري)</label>
+        <input type="text" id="personLink" placeholder="https://...">
+    </div>
 
-        window.onload = async function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            currentSlug = urlParams.get('to');
+    <button onclick="saveData()">إنشاء ورفع البيانات وتليجرام</button>
+    <div class="status" id="statusMsg"></div>
+</div>
 
-            if (!currentSlug) {
-                document.getElementById('recipient-title').innerText = "الصفحة غير موجودة";
-                return;
-            }
+<script>
+    // استرجاع التوكن القديم إن وجد لحفظه تلقائياً
+    document.getElementById('ghToken').value = localStorage.getItem('gh_token') || '';
 
-            try {
-                // جلب ملف db.json مباشرة من مستودعك على جيت هاب
-                // (استبدل اسم المستخدم وريبو الخاص بك هنا بالرابط الخام المباشر)
-                const repoOwner = location.hostname.split('.')[0]; // يجيب اسم المستخدم من جيت هاب أوتوماتيك
-                const repoName = location.pathname.split('/')[1] || 'repo-name'; // اسم الريبو
-                
-                const dbUrl = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/db.json`;
-                
-                const res = await fetch(dbUrl);
-                if (!res.ok) throw new Error("تعذر جلب البيانات");
-                
-                const db = await res.json();
+    async function saveData() {
+        const token = document.getElementById('ghToken').value.trim();
+        const name = document.getElementById('personName').value.trim();
+        const password = document.getElementById('personPass').value.trim();
+        const link = document.getElementById('personLink').value.trim();
+        const statusMsg = document.getElementById('statusMsg');
 
-                if (!db[currentSlug]) {
-                    document.getElementById('recipient-title').innerText = "الصفحة غير موجودة";
-                    return;
-                }
-
-                pageData = db[currentSlug];
-                document.getElementById('recipient-title').innerText = `الرسالة موجهة إلى: ${pageData.name}`;
-                document.getElementById('pass-box').style.display = 'block';
-
-            } catch (e) {
-                document.getElementById('recipient-title').innerText = "عذراً، حدث خطأ في تحميل بيانات الصفحة.";
-            }
-        };
-
-        function checkPassword() {
-            const inputVal = document.getElementById('password-input').value.trim();
-            const correctPass = String(pageData.password || '').trim();
-
-            if (inputVal === correctPass) {
-                document.getElementById('password-screen').classList.add('hidden');
-                document.getElementById('message-screen').classList.remove('hidden');
-
-                document.getElementById('display-name').innerText = pageData.name;
-                document.getElementById('display-message').innerText = pageData.message;
-
-                if (pageData.songUrl) {
-                    const audio = document.getElementById('bg-audio');
-                    audio.src = pageData.songUrl;
-                    audio.play().catch(e => console.log("Autoplay blocked", e));
-                }
-            } else {
-                alert("كلمة المرور غير صحيحة، حاول مرة أخرى.");
-            }
+        if (!token || !name || !password) {
+            statusMsg.style.color = '#f85149';
+            statusMsg.innerText = 'الرجاء ملء حقل التوكن، الاسم، وكلمة المرور!';
+            return;
         }
 
-        function sendReply() {
-            const replyContent = document.getElementById('reply-text').value.trim();
-            if (!replyContent) {
-                alert("يرجى كتابة رسالة أولاً.");
-                return;
+        // حفظ التوكن محلياً لتوفير الوقت في المرات القادمة
+        localStorage.setItem('gh_token', token);
+
+        statusMsg.style.color = '#58a6ff';
+        statusMsg.innerText = 'جاري الاتصال بجيت هاب وتحديث قاعدة البيانات...';
+
+        const owner = 'mohamed-egypt7';
+        const repo = 'For-you-';
+        const path = 'db.json';
+        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+        try {
+            // 1. جلب الملف الحالي من جيت هاب لمعرفة الـ SHA
+            let response = await fetch(url, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+
+            let sha = '';
+            let dbData = {};
+
+            if (response.ok) {
+                let fileInfo = await response.json();
+                sha = fileInfo.sha;
+                let decodedContent = decodeURIComponent(escape(atob(fileInfo.content)));
+                dbData = JSON.parse(decodedContent);
+            } else if (response.status !== 404) {
+                throw new Error('فشل جلب ملف db.json من جيت هاب، تأكد من التوكن وصلاحياته.');
             }
 
-            fetch('https://ipapi.co/json/')
-                .then(response => response.json())
-                .catch(() => ({}))
-                .then(data => {
-                    const ip = data.ip || "غير معروف";
-                    const location = `${data.city || ''}, ${data.country_name || ''}`.trim() || "غير معروف";
-                    const timeNow = new Date().toLocaleString('ar-EG');
+            // 2. تحديث البيانات بالاسم الجديد
+            dbData[name] = {
+                password: password,
+                link: link || ''
+            };
 
-                    const telegramText = `📬 *رسالة جديدة تم استلامها!*\n\n` +
-                                         `👤 *الموجه له:* ${pageData.name} (${currentSlug})\n` +
-                                         `💬 *الرسالة:* ${replyContent}\n\n` +
-                                         `🌐 *الآي بي:* \`${ip}\`\n` +
-                                         `📍 *الموقع:* ${location}\n` +
-                                         `⏰ *التوقيت:* ${timeNow}`;
+            // 3. إعادة رفع الملف المحدث إلى جيت هاب
+            let encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(dbData, null, 2))));
+            
+            let putResponse = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: `Add/Update ${name} via Web Admin Panel`,
+                    content: encodedContent,
+                    sha: sha ? sha : undefined
+                })
+            });
 
-                    const apiURL = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(telegramText)}&parse_mode=Markdown`;
+            if (!putResponse.ok) {
+                let errDetails = await putResponse.json();
+                throw new Error('فشل الرفع لجيت هاب: ' + (errDetails.message || putResponse.statusText));
+            }
 
-                    fetch(apiURL)
-                        .then(() => {
-                            alert("تم إرسال رسالتك بنجاح وتلقتها الإدارة عبر تيليجرام!");
-                            document.getElementById('reply-text').value = '';
-                        })
-                        .catch(() => {
-                            alert("تم إرسال رسالتك بنجاح!");
-                            document.getElementById('reply-text').value = '';
-                        });
-                });
+            // 4. إرسال نسخة احتياطية وتنبيه عبر بوت تيليجرام الخاص بك تلقائياً
+            const botToken = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU';
+            const chatId = '972616130';
+            const telegramMsg = `🚀 *تمت إضافة مستخدم جديد بنجاح!*\n\n👤 *الاسم:* ${name}\n🔑 *الباسورد:* ${password}\n🔗 *الرابط:* ${link || 'لا يوجد'}`;
+            
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: telegramMsg,
+                    parse_mode: 'Markdown'
+                })
+            }).catch(e => console.log('Telegram notice failed:', e));
+
+            statusMsg.style.color = '#3fb950';
+            statusMsg.innerText = '✅ تم تحديث النظام وإرسال الباك أب لتليجرام بنجاح!';
+            
+            // تفريغ الحقول بعد النجاح
+            document.getElementById('personName').value = '';
+            document.getElementById('personPass').value = '';
+            document.getElementById('personLink').value = '';
+
+        } catch (error) {
+            statusMsg.style.color = '#f85149';
+            statusMsg.innerText = '❌ خطأ: ' + error.message;
         }
+    }
+</script>
 
-        // حماية الشاشة والنسخ وتغبيش الشاشة
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('keydown', function(e) {
-            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74))) {
-                e.preventDefault();
-                return false;
-            }
-        });
-        window.addEventListener('blur', () => document.getElementById('main-body').classList.add('blurred-screen'));
-        window.addEventListener('focus', () => document.getElementById('main-body').classList.remove('blurred-screen'));
-    </script>
 </body>
 </html>
