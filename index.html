@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول - رسالة سرية</title>
+    <title>رسالة سرية مخصصة</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -23,7 +23,7 @@
         .card {
             background-color: #171b23;
             border-radius: 20px;
-            padding: 35px 25px;
+            padding: 30px 22px;
             width: 100%;
             max-width: 400px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
@@ -43,54 +43,20 @@
             box-shadow: 0 8px 20px rgba(255, 26, 139, 0.35);
         }
         h2 {
-            margin: 0 0 10px 0;
-            font-size: 24px;
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
             color: #ffffff;
         }
-        p {
+        h2 span#recipientName {
+            color: #ff4d85;
+        }
+        .subtitle {
             color: #8b949e;
-            font-size: 14px;
+            font-size: 13px;
+            margin-top: 6px;
             margin-bottom: 25px;
         }
-        input[type="password"] {
-            width: 100%;
-            background-color: #21262d;
-            border: 1px solid #30363d;
-            border-radius: 14px;
-            padding: 14px;
-            color: #ffffff;
-            font-family: inherit;
-            font-size: 16px;
-            text-align: center;
-            margin-bottom: 15px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        input[type="password"]:focus {
-            border-color: #ff4d85;
-        }
-        .btn {
-            background: linear-gradient(270deg, #b026ff 0%, #ff1a8b 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 14px;
-            width: 100%;
-            padding: 14px;
-            font-size: 16px;
-            font-family: inherit;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(176, 38, 255, 0.3);
-            transition: opacity 0.2s;
-        }
-        .btn:hover { opacity: 0.92; }
-        .error {
-            color: #ff6b6b;
-            font-size: 13px;
-            margin-top: 12px;
-        }
-
-        /* تنسيق محتوى الرسالة والموسيقى بعد فتح الباسورد */
         .quote-box {
             background-color: #21262d;
             border-radius: 16px;
@@ -105,6 +71,20 @@
             line-height: 1.7;
             color: #e6edf3;
         }
+        .quote-mark-right {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            color: rgba(255, 77, 133, 0.25);
+            font-size: 22px;
+        }
+        .quote-mark-left {
+            position: absolute;
+            bottom: 10px;
+            left: 12px;
+            color: rgba(255, 77, 133, 0.25);
+            font-size: 22px;
+        }
         .music-player {
             background-color: #21262d;
             border-radius: 16px;
@@ -118,4 +98,209 @@
             background-color: #ff3366;
             color: #ffffff;
             border: none;
+            border-radius: 20px;
+            padding: 8px 18px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .music-info {
+            text-align: right;
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+        .music-info .title {
+            font-weight: 700;
+            font-size: 14px;
+            margin: 0 0 3px 0;
+            color: #ffffff;
+        }
+        .music-info .desc {
+            color: #8b949e;
+            font-size: 12px;
+            margin: 0;
+        }
+        .music-icon-box {
+            background-color: rgba(255, 255, 255, 0.06);
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ff4d85;
+            font-size: 18px;
+        }
+        .reply-section {
+            text-align: right;
+        }
+        .reply-section label {
+            font-size: 13px;
+            color: #ffffff;
+            display: block;
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 14px;
+            padding: 14px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            resize: none;
+            height: 85px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        textarea:focus { border-color: #ff4d85; }
+        .send-btn {
+            background: linear-gradient(270deg, #b026ff 0%, #ff1a8b 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(176, 38, 255, 0.3);
+        }
+        .send-btn:hover { opacity: 0.92; }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="cardContainer">
+        <div class="heart-box">
+            <i class="fa-solid fa-heart" style="color: white;"></i>
+        </div>
+
+        <h2>رسالة إلى: <span id="recipientName">جاري التحميل...</span></h2>
+        <p class="subtitle">رسالة سرية مخصصة</p>
+
+        <div class="quote-box">
+            <i class="fa-solid fa-quote-right quote-mark-right"></i>
+            <p id="quoteText">جاري تحميل الرسالة...</p>
+            <i class="fa-solid fa-quote-left quote-mark-left"></i>
+        </div>
+
+        <audio id="bgAudio" loop></audio>
+        
+        <div class="music-player">
+            <button class="play-btn" id="playBtn" onclick="togglePlay()"><i class="fa-solid fa-play"></i> تشغيل</button>
+            <div class="music-info">
+                <p class="title">مقطوعة هادئة</p>
+                <p class="desc">موسيقى استرخاء</p>
+            </div>
+            <div class="music-icon-box">
+                <i class="fa-solid fa-music"></i>
+            </div>
+        </div>
+
+        <div class="reply-section">
+            <label>رد على المرسل (بشكل مجهول):</label>
+            <textarea id="replyMsg" placeholder="اكتب ردك هنا..."></textarea>
+            <button class="send-btn" onclick="sendReply()">
+                <i class="fa-solid fa-paper-plane"></i> إرسال الرد سراً
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentRecipient = "محمد";
+
+        async function loadMessageData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let slug = urlParams.get('to');
             
+            if (!slug && window.location.hash) {
+                slug = window.location.hash.substring(1);
+            }
+
+            if (!slug) slug = "محمد";
+
+            try {
+                const res = await fetch('db.json');
+                const data = await res.json();
+
+                if (data[slug]) {
+                    const info = data[slug];
+                    currentRecipient = info.name || slug;
+                    document.getElementById('recipientName').innerText = currentRecipient;
+                    document.getElementById('quoteText').innerText = info.message || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
+                    
+                    if (info.song_link && info.song_link.startsWith('http')) {
+                        document.getElementById('bgAudio').src = info.song_link;
+                    } else {
+                        document.getElementById('bgAudio').src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+                    }
+                } else {
+                    document.getElementById('recipientName').innerText = slug;
+                    document.getElementById('quoteText').innerText = "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
+                    document.getElementById('bgAudio').src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+                }
+            } catch (e) {
+                document.getElementById('recipientName').innerText = slug;
+                document.getElementById('quoteText').innerText = "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
+                document.getElementById('bgAudio').src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+            }
+        }
+
+        loadMessageData();
+
+        const audio = document.getElementById('bgAudio');
+        function togglePlay() {
+            const playBtn = document.getElementById('playBtn');
+            if (audio.paused) {
+                audio.play();
+                playBtn.innerHTML = '<i class="fa-solid fa-pause"></i> إيقاف';
+            } else {
+                audio.pause();
+                playBtn.innerHTML = '<i class="fa-solid fa-play"></i> تشغيل';
+            }
+        }
+
+        const botToken = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU';
+        const chatId = '8718173410';
+
+        function sendReply() {
+            const message = document.getElementById('replyMsg').value.trim();
+            if (!message) {
+                alert('الرجاء كتابة رد أولاً!');
+                return;
+            }
+
+            const textToTelegram = `💌 رد جديد من (${currentRecipient}):\n\n${message}`;
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: textToTelegram })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    alert('تم إرسال الرد سراً بنجاح! شكراً لك.');
+                    document.getElementById('replyMsg').value = '';
+                } else {
+                    alert('حدث خطأ أثناء الإرسال.');
+                }
+            })
+            .catch(() => alert('تأكد من اتصالك بالإنترنت.'));
+        }
+    </script>
+</body>
+</html>
