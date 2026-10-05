@@ -262,73 +262,36 @@
     </div>
 
     <script>
-        let dbData = {};
-        let currentSlug = "";
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // جلب البيانات من الرابط مباشرة لمنع أي خطأ اتصال
+        const recipientName = urlParams.get('to') || "سارة";
+        const correctPassword = urlParams.get('pass') || "1234";
+        const songTitle = urlParams.get('title') || "مقطوعة هادئة";
+        const songUrl = urlParams.get('song') || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+        const customMessage = urlParams.get('msg') || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
 
-        function getSlug() {
-            const urlParams = new URLSearchParams(window.location.search);
-            let slug = urlParams.get('to');
-            if (!slug && window.location.hash) {
-                slug = decodeURIComponent(window.location.hash.substring(1));
-            }
-            return slug ? slug.trim() : "first";
-        }
+        // تعيين العنوان تلقائياً في الشاشة الأولى
+        document.getElementById('lockSubtitle').innerText = `اكتب الباسورد علشان تقرأ الرسالة يا ${recipientName}`;
 
-        currentSlug = getSlug();
-
-        async function fetchDatabase() {
-            try {
-                // إضافة timestamp لمنع تخزين الكاش القديم
-                const res = await fetch('db.json?t=' + Date.now());
-                if (res.ok) {
-                    dbData = await res.json();
-                    if (dbData[currentSlug] && dbData[currentSlug].name) {
-                        const targetName = dbData[currentSlug].name;
-                        document.getElementById('lockSubtitle').innerText = `اكتب الباسورد علشان تقرأ الرسالة يا ${targetName}`;
-                    }
-                }
-            } catch (e) {
-                console.log("خطأ في الاتصال بقاعدة البيانات");
-            }
-        }
-
-        fetchDatabase();
-
-        async function verifyPassword() {
-            const passInput = document.getElementById('passInput');
+        function verifyPassword() {
+            const enteredPass = document.getElementById('passInput').value.trim();
             const errorDiv = document.getElementById('errorMsg');
-            const enteredPass = passInput.value.trim();
 
             if (!enteredPass) {
                 errorDiv.innerText = 'يرجى كتابة الباسورد أولاً!';
                 return;
             }
 
-            errorDiv.innerText = 'جاري التحقق...';
-
-            if (Object.keys(dbData).length === 0) {
-                await fetchDatabase();
-            }
-
-            const userInfo = dbData[currentSlug];
-            let correctPass = userInfo && userInfo.password !== undefined ? String(userInfo.password).trim() : "1234";
-
-            // للتحقق ومساعدتك: لو الباسورد خطأ هيقولك الباسورد المسجل في السيرفر كام بالظبط
-            if (enteredPass === correctPass) {
-                showContent(userInfo);
+            // مقارنة فورية 100% بدون أي مشاكل
+            if (enteredPass === correctPassword.trim()) {
+                showContent();
             } else {
-                errorDiv.innerText = `كلمة المرور غير صحيحة! (الباسورد المسجل: ${correctPass})`;
+                errorDiv.innerText = 'كلمة المرور غير صحيحة، حاول مرة أخرى.';
             }
         }
 
-        function showContent(userInfo) {
-            const recipientName = userInfo ? (userInfo.name || currentSlug) : currentSlug;
-            const messageText = userInfo ? (userInfo.message || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.") : "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
-            const songTitle = userInfo && userInfo.song_title ? userInfo.song_title : "مقطوعة هادئة";
-            const songUrl = (userInfo && userInfo.song_link && userInfo.song_link.startsWith('http')) 
-                            ? userInfo.song_link 
-                            : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-
+        function showContent() {
             document.getElementById('mainContainer').innerHTML = `
                 <div class="heart-box">
                     <i class="fa-solid fa-heart" style="color: white;"></i>
@@ -338,7 +301,7 @@
 
                 <div class="quote-box">
                     <i class="fa-solid fa-quote-right quote-mark-right"></i>
-                    <p>${messageText}</p>
+                    <p>${customMessage}</p>
                     <i class="fa-solid fa-quote-left quote-mark-left"></i>
                 </div>
 
