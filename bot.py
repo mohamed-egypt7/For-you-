@@ -8,7 +8,6 @@ from telebot import types
 TOKEN = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU'
 ADMIN_CHAT_ID = '8718173410'
 
-# قراءة التوكن محلياً بأمان تام
 GITHUB_TOKEN = 'YOUR_GITHUB_TOKEN'
 try:
   if os.path.exists('my_token.txt'):
@@ -22,7 +21,6 @@ REPO_NAME = 'For-you-'
 FILE_PATH = 'db.json'
 
 bot = telebot.TeleBot(TOKEN)
-
 user_steps = {}
 temp_data = {}
 
@@ -59,7 +57,6 @@ def update_db(data, sha, msg):
   return r.status_code in [200, 201]
 
 
-# القائمة الرئيسية
 def main_menu():
   markup = types.InlineKeyboardMarkup(row_width=1)
   btn_add = types.InlineKeyboardButton(
@@ -80,15 +77,13 @@ def start_command(message):
   if str(message.chat.id) != str(ADMIN_CHAT_ID):
     bot.reply_to(message, 'عذراً، هذا البوت مخصص للمالك فقط.')
     return
-
   bot.send_message(
       message.chat.id,
-      'أهلاً بك يا محمد! 🚀 لوحة تحكم الموقع الشاملة جاهزة.\nاختر ما تحب فعله:',
+      'أهلاً بك يا محمد! 🚀 لوحة التحكم جاهزة:',
       reply_markup=main_menu(),
   )
 
 
-# زر إضافة مستخدم
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_add')
 def callback_add(call):
   chat_id = call.message.chat.id
@@ -100,7 +95,6 @@ def callback_add(call):
   )
 
 
-# زر عرض المستخدمين
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_list')
 def callback_list(call):
   chat_id = call.message.chat.id
@@ -134,7 +128,6 @@ def callback_list(call):
   )
 
 
-# زر قائمة الحذف
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_del_menu')
 def callback_del_menu(call):
   chat_id = call.message.chat.id
@@ -156,26 +149,20 @@ def callback_del_menu(call):
   )
   bot.send_message(
       chat_id,
-      '🗑️ اختر المستخدم الذي تريد حذفه وإزالته من الموقع:',
+      '🗑️ اختر المستخدم الذي تريد حذفه:',
       reply_markup=markup,
   )
 
 
-# تنفيذ الحذف الفعلي
 @bot.callback_query_handler(func=lambda call: call.data.startswith('del_'))
 def callback_execute_delete(call):
   chat_id = call.message.chat.id
   name_to_del = call.data.replace('del_', '', 1)
   bot.answer_callback_query(call.id)
-
-  bot.send_message(chat_id, f'⏳ جاري حذف المستخدم `{name_to_del}` وتحديث جيت هاب...')
-
   db_data, sha = get_db()
   if name_to_del in db_data:
     del db_data[name_to_del]
-    success = update_db(
-        db_data, sha, f'Delete user {name_to_del} via Telegram Bot'
-    )
+    success = update_db(db_data, sha, f'Delete user {name_to_del}')
     if success:
       markup = types.InlineKeyboardMarkup()
       markup.add(
@@ -185,17 +172,16 @@ def callback_execute_delete(call):
       )
       bot.send_message(
           chat_id,
-          f'✅ تم حذف المستخدم **{name_to_del}** بنجاح وتحديث الموقع!',
+          f'✅ تم حذف المستخدم **{name_to_del}** بنجاح!',
           parse_mode='Markdown',
           reply_markup=markup,
       )
     else:
       bot.send_message(chat_id, '❌ فشل التحديث على جيت هاب.')
   else:
-    bot.send_message(chat_id, '⚠️ المستخدم غير موجود بالفعل.')
+    bot.send_message(chat_id, '⚠️ المستخدم غير موجود.')
 
 
-# الرجوع للقائمة الرئيسية
 @bot.callback_query_handler(func=lambda call: call.data == 'main_menu')
 def callback_main_menu(call):
   chat_id = call.message.chat.id
@@ -205,7 +191,6 @@ def callback_main_menu(call):
   )
 
 
-# خطوات الإضافة المتقدمة (الاسم -> الباسورد -> رابط الأغنية)
 @bot.message_handler(
     func=lambda m: str(m.chat.id) == str(ADMIN_CHAT_ID)
     and m.chat.id in user_steps
@@ -218,44 +203,37 @@ def handle_steps(message):
   if step == 'waiting_for_name':
     temp_data[chat_id]['name'] = text
     user_steps[chat_id] = 'waiting_for_pass'
-    bot.reply_to(
-        message, '🔑 ممتاز! أرسل الآن **كلمة المرور**:', parse_mode='Markdown'
-    )
+    bot.reply_to(message, '🔑 أرسل الآن **كلمة المرور**:', parse_mode='Markdown')
 
   elif step == 'waiting_for_pass':
     temp_data[chat_id]['password'] = text
     user_steps[chat_id] = 'waiting_for_song'
     bot.reply_to(
         message,
-        '🎵 رائع! أرسل الآن **رابط الأغنية** (أو اكتب `لا` لو مفيش):',
+        '🎵 أرسل الآن **رابط الأغنية** (أو اكتب `لا` لو مفيش):',
         parse_mode='Markdown',
     )
 
   elif step == 'waiting_for_song':
     song_link = '' if text.lower() == 'لا' else text
-    temp_data[chat_id]['song_link'] = song_link
-
     name = temp_data[chat_id]['name']
     password = temp_data[chat_id]['password']
-
     del user_steps[chat_id]
 
-    bot.reply_to(message, '⏳ جاري رفع البيانات وتحديث جيت هاب، ثواني...')
+    bot.reply_to(message, '⏳ جاري الحفظ والتحديث فوراً...')
 
     db_data, sha = get_db()
     if not db_data:
       db_data = {}
 
-    # رابط الصفحة المخصص للعميل
     page_link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/user.html#{name}'
-
     db_data[name] = {
         'password': password,
         'song_link': song_link,
         'link': page_link,
     }
 
-    success = update_db(db_data, sha, f'Add {name} with song via Bot')
+    success = update_db(db_data, sha, f'Add user {name}')
     if success:
       markup = types.InlineKeyboardMarkup()
       markup.add(
@@ -263,13 +241,10 @@ def handle_steps(message):
               '🔙 القائمة الرئيسية', callback_data='main_menu'
           )
       )
-
       msg_text = (
-          f'✅ تمت الإضافة وتوليد الصفحة بنجاح!\n\n'
-          f'👤 الاسم: `{name}`\n'
-          f'🔑 الباسورد: `{password}`\n'
-          f'🔗 رابط صفحة العميل: [اضغط هنا لفتح الصفحة]({page_link})\n'
-          f'🎵 رابط الأغنية: {song_link if song_link else "لا يوجد"}'
+          f'✅ تمت الإضافة بنجاح!\n\n👤 الاسم: `{name}`\n🔑 الباسورد:'
+          f' `{password}`\n🔗 رابط صفحة العميل: [فتح الصفحة]({page_link})\n🎵'
+          f' الأغنية: {song_link if song_link else "لا يوجد"}'
       )
       bot.send_message(
           chat_id,
@@ -279,11 +254,9 @@ def handle_steps(message):
           disable_web_page_preview=True,
       )
     else:
-      bot.send_message(
-          chat_id, '❌ فشل التحديث على جيت هاب، تأكد من صحة الصلاحيات.'
-      )
+      bot.send_message(chat_id, '❌ حدث خطأ في الاتصال بجيت هاب.')
 
 
 if __name__ == '__main__':
-  print('Bot with complete song feature is running...')
+  print('Bot is running...')
   bot.infinity_polling()
