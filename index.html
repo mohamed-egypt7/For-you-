@@ -9,8 +9,9 @@
     
     <style>
         * { box-sizing: border-box; }
+        
         body {
-            background-color: #0b0f14;
+            background: radial-gradient(circle at center, #161b22 0%, #0b0f14 100%);
             color: #ffffff;
             font-family: 'Tajawal', sans-serif;
             display: flex;
@@ -20,153 +21,90 @@
             margin: 0;
             padding: 20px;
         }
+
         .card {
             background-color: #171b23;
-            border-radius: 20px;
-            padding: 30px 22px;
+            border-radius: 24px;
+            padding: 35px 24px;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            max-width: 410px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.7), 0 0 20px rgba(176, 38, 255, 0.1);
             text-align: center;
-            border: 1px solid #21262d;
+            border: 1px solid #30363d;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(20px) scale(0.96); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
         .heart-box {
             background: linear-gradient(135deg, #b026ff 0%, #ff1a8b 100%);
-            width: 75px;
-            height: 75px;
-            border-radius: 22px;
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 0 auto 20px;
-            font-size: 34px;
-            box-shadow: 0 8px 20px rgba(255, 26, 139, 0.35);
+            margin: 0 auto 22px;
+            font-size: 36px;
+            box-shadow: 0 10px 25px rgba(255, 26, 139, 0.4);
+            animation: pulseGlow 2s infinite;
         }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 26, 139, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(176, 38, 255, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 26, 139, 0.4); }
+        }
+
         h2 {
             margin: 0;
             font-size: 26px;
             font-weight: 700;
             color: #ffffff;
         }
+
         h2 span#recipientName {
             color: #ff4d85;
+            text-shadow: 0 0 10px rgba(255, 77, 133, 0.3);
         }
+
         .subtitle {
             color: #8b949e;
             font-size: 13px;
             margin-top: 6px;
             margin-bottom: 25px;
         }
-        .quote-box {
-            background-color: #21262d;
-            border-radius: 16px;
-            padding: 22px 20px;
-            position: relative;
-            margin-bottom: 22px;
-            text-align: right;
-        }
-        .quote-box p {
-            margin: 0;
-            font-size: 14px;
-            line-height: 1.7;
-            color: #e6edf3;
-        }
-        .quote-mark-right {
-            position: absolute;
-            top: 10px;
-            right: 12px;
-            color: rgba(255, 77, 133, 0.25);
-            font-size: 22px;
-        }
-        .quote-mark-left {
-            position: absolute;
-            bottom: 10px;
-            left: 12px;
-            color: rgba(255, 77, 133, 0.25);
-            font-size: 22px;
-        }
-        .music-player {
-            background-color: #21262d;
-            border-radius: 16px;
-            padding: 14px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 25px;
-        }
-        .play-btn {
-            background-color: #ff3366;
-            color: #ffffff;
-            border: none;
-            border-radius: 20px;
-            padding: 8px 18px;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .music-info {
-            text-align: right;
-            flex-grow: 1;
-            margin-right: 15px;
-        }
-        .music-info .title {
-            font-weight: 700;
-            font-size: 14px;
-            margin: 0 0 3px 0;
-            color: #ffffff;
-        }
-        .music-info .desc {
-            color: #8b949e;
-            font-size: 12px;
-            margin: 0;
-        }
-        .music-icon-box {
-            background-color: rgba(255, 255, 255, 0.06);
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #ff4d85;
-            font-size: 18px;
-        }
-        .reply-section {
-            text-align: right;
-        }
-        .reply-section label {
-            font-size: 13px;
-            color: #ffffff;
-            display: block;
-            margin-bottom: 10px;
-        }
-        textarea {
+
+        input[type="password"] {
             width: 100%;
             background-color: #21262d;
             border: 1px solid #30363d;
-            border-radius: 14px;
-            padding: 14px;
+            border-radius: 16px;
+            padding: 15px;
             color: #ffffff;
             font-family: inherit;
-            font-size: 14px;
-            resize: none;
-            height: 85px;
+            font-size: 16px;
+            text-align: center;
             margin-bottom: 15px;
-            box-sizing: border-box;
             outline: none;
+            transition: all 0.3s;
         }
-        textarea:focus { border-color: #ff4d85; }
-        .send-btn {
+
+        input[type="password"]:focus {
+            border-color: #ff4d85;
+            box-shadow: 0 0 12px rgba(255, 77, 133, 0.3);
+        }
+
+        .btn {
             background: linear-gradient(270deg, #b026ff 0%, #ff1a8b 100%);
             color: #ffffff;
             border: none;
-            border-radius: 14px;
+            border-radius: 16px;
             width: 100%;
-            padding: 14px;
+            padding: 15px;
             font-size: 16px;
             font-family: inherit;
             font-weight: 700;
@@ -175,132 +113,189 @@
             justify-content: center;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 5px 15px rgba(176, 38, 255, 0.3);
+            box-shadow: 0 6px 20px rgba(176, 38, 255, 0.4);
+            transition: transform 0.2s, opacity 0.2s;
         }
-        .send-btn:hover { opacity: 0.92; }
+
+        .btn:hover { opacity: 0.95; transform: translateY(-2px); }
+        .btn:active { transform: scale(0.98); }
+
+        .error {
+            color: #ff6b6b;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        .quote-box {
+            background-color: #21262d;
+            border-radius: 18px;
+            padding: 24px 20px;
+            position: relative;
+            margin-bottom: 22px;
+            text-align: right;
+            border: 1px solid #30363d;
+        }
+
+        .quote-box p {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #e6edf3;
+        }
+
+        .quote-mark-right {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            color: rgba(255, 77, 133, 0.2);
+            font-size: 22px;
+        }
+
+        .quote-mark-left {
+            position: absolute;
+            bottom: 10px;
+            left: 14px;
+            color: rgba(255, 77, 133, 0.2);
+            font-size: 22px;
+        }
+
+        .music-player {
+            background-color: #21262d;
+            border-radius: 18px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            border: 1px solid #30363d;
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #ff3366, #ff1a8b);
+            color: #ffffff;
+            border: none;
+            border-radius: 22px;
+            padding: 10px 20px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(255, 51, 102, 0.3);
+        }
+
+        .music-info {
+            text-align: right;
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+
+        .music-info .title {
+            font-weight: 700;
+            font-size: 14px;
+            margin: 0 0 3px 0;
+            color: #ffffff;
+        }
+
+        .music-info .desc {
+            color: #8b949e;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .music-icon-box {
+            background-color: rgba(255, 255, 255, 0.05);
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ff4d85;
+            font-size: 18px;
+        }
+
+        .reply-section { text-align: right; }
+        .reply-section label {
+            font-size: 13px;
+            color: #8b949e;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            padding: 15px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            resize: none;
+            height: 90px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        textarea:focus { border-color: #b026ff; }
     </style>
 </head>
 <body>
 
-    <div class="card" id="cardContainer">
-        <div class="heart-box">
-            <i class="fa-solid fa-heart" style="color: white;"></i>
-        </div>
-
-        <h2>رسالة إلى: <span id="recipientName">جاري التحميل...</span></h2>
-        <p class="subtitle">رسالة سرية مخصصة</p>
-
-        <div class="quote-box">
-            <i class="fa-solid fa-quote-right quote-mark-right"></i>
-            <p id="quoteText">جاري تحميل الرسالة...</p>
-            <i class="fa-solid fa-quote-left quote-mark-left"></i>
-        </div>
-
-        <audio id="bgAudio" loop></audio>
-        
-        <div class="music-player">
-            <button class="play-btn" id="playBtn" onclick="togglePlay()"><i class="fa-solid fa-play"></i> تشغيل</button>
-            <div class="music-info">
-                <p class="title">مقطوعة هادئة</p>
-                <p class="desc">موسيقى استرخاء</p>
+    <div class="card" id="mainContainer">
+        <!-- الشاشة الأولى: طلب كلمة المرور -->
+        <div id="loginView">
+            <div class="heart-box">
+                <i class="fa-solid fa-lock" style="color: white;"></i>
             </div>
-            <div class="music-icon-box">
-                <i class="fa-solid fa-music"></i>
-            </div>
-        </div>
-
-        <div class="reply-section">
-            <label>رد على المرسل (بشكل مجهول):</label>
-            <textarea id="replyMsg" placeholder="اكتب ردك هنا..."></textarea>
-            <button class="send-btn" onclick="sendReply()">
-                <i class="fa-solid fa-paper-plane"></i> إرسال الرد سراً
+            <h2>كلمة المرور مطلوبة</h2>
+            <p class="subtitle">أدخل كلمة المرور الخاصة بك لعرض الرسالة والموسيقى</p>
+            <input type="password" id="passInput" placeholder="اكتب كلمة المرور هنا..." onkeypress="handleKeyPress(event)">
+            <button class="btn" onclick="verifyPassword()">
+                <i class="fa-solid fa-key"></i> فتح الرسالة
             </button>
+            <div id="errorMsg" class="error"></div>
         </div>
     </div>
 
     <script>
-        let currentRecipient = "محمد";
+        let dbData = {};
+        let currentSlug = "";
 
-        async function loadMessageData() {
+        // جلب البيانات مع إلغاء الكاش لمنع استرجاع الأغاني القديمة
+        async function fetchDatabase() {
             const urlParams = new URLSearchParams(window.location.search);
-            let slug = urlParams.get('to');
+            currentSlug = urlParams.get('to');
             
-            if (!slug && window.location.hash) {
-                slug = window.location.hash.substring(1);
+            if (!currentSlug && window.location.hash) {
+                currentSlug = decodeURIComponent(window.location.hash.substring(1));
             }
 
-            if (!slug) slug = "محمد";
+            if (!currentSlug) currentSlug = "first";
 
             try {
-                const res = await fetch('db.json');
-                const data = await res.json();
-
-                if (data[slug]) {
-                    const info = data[slug];
-                    currentRecipient = info.name || slug;
-                    document.getElementById('recipientName').innerText = currentRecipient;
-                    document.getElementById('quoteText').innerText = info.message || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
-                    
-                    if (info.song_link && info.song_link.startsWith('http')) {
-                        document.getElementById('bgAudio').src = info.song_link;
-                    } else {
-                        document.getElementById('bgAudio').src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-                    }
-                } else {
-                    document.getElementById('recipientName').innerText = slug;
-                    document.getElementById('quoteText').innerText = "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
-                    document.getElementById('bgAudio').src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-                }
+                // إضافة timestamp لمنع المتصفح من كاش الملف القديم
+                const res = await fetch('db.json?t=' + Date.now());
+                dbData = await res.json();
             } catch (e) {
-                document.getElementById('recipientName').innerText = slug;
-                document.getElementById('quoteText').innerText = "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
-                document.getElementById('bgAudio').src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+                console.log("خطأ في الاتصال بقاعدة البيانات");
             }
         }
 
-        loadMessageData();
+        fetchDatabase();
 
-        const audio = document.getElementById('bgAudio');
-        function togglePlay() {
-            const playBtn = document.getElementById('playBtn');
-            if (audio.paused) {
-                audio.play();
-                playBtn.innerHTML = '<i class="fa-solid fa-pause"></i> إيقاف';
-            } else {
-                audio.pause();
-                playBtn.innerHTML = '<i class="fa-solid fa-play"></i> تشغيل';
-            }
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') verifyPassword();
         }
 
-        const botToken = '8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU';
-        const chatId = '8718173410';
+        function verifyPassword() {
+            const enteredPass = document.getElementById('passInput').value.trim();
+            const errorDiv = document.getElementById('errorMsg');
 
-        function sendReply() {
-            const message = document.getElementById('replyMsg').value.trim();
-            if (!message) {
-                alert('الرجاء كتابة رد أولاً!');
-                return;
-            }
-
-            const textToTelegram = `💌 رد جديد من (${currentRecipient}):\n\n${message}`;
-            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: textToTelegram })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    alert('تم إرسال الرد سراً بنجاح! شكراً لك.');
-                    document.getElementById('replyMsg').value = '';
-                } else {
-                    alert('حدث خطأ أثناء الإرسال.');
-                }
-            })
-            .catch(() => alert('تأكد من اتصالك بالإنترنت.'));
-        }
-    </script>
-</body>
-</html>
+            const userInfo = dbData[currentSlug];
+            
+            // التحقق من كلمة المرور المسجلة لهذا المستخدم في db.json
+            const correctPass = userInfo ? userInfo.password :
