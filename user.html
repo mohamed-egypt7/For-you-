@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صفحة العميل الخاصة</title>
+    <title>تسجيل الدخول - صفحتك الخاصة</title>
     <style>
         body {
             background-color: #121212;
@@ -14,7 +14,7 @@
             margin: 0;
         }
         .container {
-            max-width: 420px;
+            max-width: 400px;
             margin: 0 auto;
             background: #1e1e1e;
             padding: 35px 25px;
@@ -22,8 +22,20 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.6);
             border: 1px solid #2a2a2a;
         }
-        h1 { color: #00d2ff; margin-bottom: 10px; font-size: 24px; }
-        p { color: #b2b2b2; margin-bottom: 25px; font-size: 15px; }
+        h2 { color: #00d2ff; margin-bottom: 15px; }
+        p { color: #b2b2b2; margin-bottom: 20px; font-size: 14px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            text-align: center;
+        }
         .btn {
             display: block;
             width: 100%;
@@ -31,58 +43,77 @@
             background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
             color: white;
             text-decoration: none;
-            border-radius: 10px;
+            border: none;
+            border-radius: 8px;
             font-weight: bold;
             font-size: 16px;
+            cursor: pointer;
             box-sizing: border-box;
             transition: 0.3s;
-            box-shadow: 0 4px 12px rgba(0, 114, 255, 0.4);
-            margin-top: 15px;
         }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-        .error { color: #ff6b6b; }
+        .btn:hover { opacity: 0.9; }
+        .error { color: #ff6b6b; margin-top: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div class="container" id="content">
-        <p>جاري تحميل البيانات...</p>
+    <div class="container" id="app">
+        <div id="login-box">
+            <h2 id="welcome-title">تسجيل الدخول</h2>
+            <p>أدخل كلمة المرور الخاصة بك لعرض المحتوى</p>
+            <input type="password" id="password-input" placeholder="كلمة المرور">
+            <button class="btn" onclick="checkPassword()">دخول</button>
+            <div id="error-msg" class="error"></div>
+        </div>
     </div>
 
     <script>
-        async function loadUserData() {
-            const hash = window.location.hash.substring(1);
-            const container = document.getElementById('content');
-            
-            if (!hash) {
-                container.innerHTML = '<h2 class="error">عذراً</h2><p>لم يتم تحديد اسم المستخدم في الرابط.</p>';
+        let userData = null;
+        let userName = "";
+
+        async function initPage() {
+            userName = window.location.hash.substring(1);
+            if (!userName) {
+                document.getElementById('app').innerHTML = '<h2 class="error">خطأ</h2><p>لم يتم العثور على اسم المستخدم في الرابط.</p>';
                 return;
             }
+            
+            document.getElementById('welcome-title').innerText = `أهلاً بك، ${userName}`;
 
             try {
-                const response = await fetch('db.json');
-                const data = await response.json();
-                
-                if (data[hash]) {
-                    const userInfo = data[hash];
-                    let html = `<h1>أهلاً بك، ${hash}</h1>`;
-                    html += `<p>مرحباً بك في صفحتك الخاصة المخصصة لك</p>`;
-                    
-                    const songLink = userInfo.song_link || userInfo.link;
-                    if (songLink && songLink.startsWith('http')) {
-                        html += `<a href="${songLink}" class="btn" target="_blank">🎵 اضغط هنا لفتح الأغنية أو الصفحة</a>`;
-                    } else {
-                        html += `<p style="color: #888;">لا توجد روابط أغاني مسجلة حالياً.</p>`;
-                    }
-                    
-                    container.innerHTML = html;
+                const res = await fetch('db.json');
+                const data = await res.json();
+                if (data[userName]) {
+                    userData = data[userName];
                 } else {
-                    container.innerHTML = '<h2 class="error">غير موجود</h2><p>عذراً، هذا الحساب غير موجود.</p>';
+                    document.getElementById('app').innerHTML = '<h2 class="error">غير موجود</h2><p>هذا المستخدم غير مسجل.</p>';
                 }
             } catch (e) {
-                container.innerHTML = '<h2 class="error">خطأ في الاتصال</h2><p>تعذر جلب البيانات.</p>';
+                document.getElementById('app').innerHTML = '<h2 class="error">خطأ</h2><p>تعذر الاتصال بقاعدة البيانات.</p>';
             }
         }
-        loadUserData();
+
+        function checkPassword() {
+            const inputVal = document.getElementById('password-input').value.trim();
+            const errorDiv = document.getElementById('error-msg');
+
+            if (!userData) return;
+
+            if (inputVal === userData.password) {
+                let songUrl = userData.song_link;
+                let html = `<h2>مرحباً بك، ${userName}</h2><p>تم تسجيل الدخول بنجاح!</p>`;
+                
+                if (songUrl && songUrl.startsWith('http')) {
+                    html += `<a href="${songUrl}" class="btn" target="_blank" style="margin-top: 20px; display:inline-block; text-align:center;">🎵 اضغط هنا لفتح الأغنية</a>`;
+                } else {
+                    html += `<p style="color: #888;">لا توجد أغاني أو روابط مضافة لهذا الحساب حالياً.</p>`;
+                }
+                document.getElementById('app').innerHTML = html;
+            } else {
+                errorDiv.innerText = 'كلمة المرور غير صحيحة، حاول مرة أخرى.';
+            }
+        }
+
+        initPage();
     </script>
 </body>
 </html>
