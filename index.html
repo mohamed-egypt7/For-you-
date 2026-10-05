@@ -31,12 +31,12 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.7), 0 0 20px rgba(176, 38, 255, 0.1);
             text-align: center;
             border: 1px solid #30363d;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: slideUp 0.5s ease-out forwards;
         }
 
         @keyframes slideUp {
-            0% { opacity: 0; transform: translateY(20px) scale(0.96); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
         .heart-box {
@@ -247,7 +247,6 @@
 <body>
 
     <div class="card" id="mainContainer">
-        <!-- الشاشة الأولى: طلب كلمة المرور بالتعديل اللفظي المطلوب -->
         <div id="loginView">
             <div class="heart-box">
                 <i class="fa-solid fa-heart" style="color: white;"></i>
@@ -272,7 +271,7 @@
             if (!slug && window.location.hash) {
                 slug = decodeURIComponent(window.location.hash.substring(1));
             }
-            return slug || "first";
+            return slug ? slug.trim() : "first";
         }
 
         currentSlug = getSlug();
@@ -288,7 +287,7 @@
                     }
                 }
             } catch (e) {
-                console.log("خطأ في الاتصال بقاعدة البيانات:", e);
+                console.log("خطأ في الاتصال بقاعدة البيانات");
             }
         }
 
@@ -311,7 +310,8 @@
             }
 
             const userInfo = dbData[currentSlug];
-            let correctPass = userInfo ? (userInfo.password ? userInfo.password.toString().trim() : "1234") : "1234";
+            // معالجة دقيقة للباسورد لتجنب أي مشاكل في التطابق
+            let correctPass = userInfo && userInfo.password !== undefined ? String(userInfo.password).trim() : "1234";
 
             if (enteredPass === correctPass) {
                 showContent(userInfo);
@@ -323,6 +323,7 @@
         function showContent(userInfo) {
             const recipientName = userInfo ? (userInfo.name || currentSlug) : currentSlug;
             const messageText = userInfo ? (userInfo.message || "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.") : "أهلاً بك! تم إنهاء تجهيز هذه الرسالة الخاصة لك.";
+            const songTitle = userInfo && userInfo.song_title ? userInfo.song_title : "مقطوعة هادئة";
             const songUrl = (userInfo && userInfo.song_link && userInfo.song_link.startsWith('http')) 
                             ? userInfo.song_link 
                             : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
@@ -345,7 +346,7 @@
                 <div class="music-player">
                     <button class="play-btn" id="playBtn" onclick="togglePlay()"><i class="fa-solid fa-play"></i> تشغيل</button>
                     <div class="music-info">
-                        <p class="title">مقطوعة هادئة</p>
+                        <p class="title">${songTitle}</p>
                         <p class="desc">موسيقى استرخاء</p>
                     </div>
                     <div class="music-icon-box">
