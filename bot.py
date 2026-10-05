@@ -90,9 +90,7 @@ def callback_add(call):
   user_steps[chat_id] = 'waiting_for_name'
   temp_data[chat_id] = {}
   bot.answer_callback_query(call.id)
-  bot.send_message(
-      chat_id, '👤 أرسل الآن **اسم المستخدم** (Key):', parse_mode='Markdown'
-  )
+  bot.send_message(chat_id, '👤 أرسل الآن اسم المستخدم (Key):')
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_list')
@@ -104,28 +102,21 @@ def callback_list(call):
     bot.send_message(chat_id, '📭 قاعدة البيانات فارغة حالياً.')
     return
 
-  text = '📋 **قائمة المستخدمين المسجلين:**\n\n'
+  text = '📋 قائمة المستخدمين المسجلين:\n\n'
   for name, info in db_data.items():
     pwd = info.get('password', '')
     song_link = info.get('song_link', 'لا يوجد')
     page_link = f'https://{REPO_OWNER}.github.io/{REPO_NAME}/user.html#{name}'
     text += (
-        f'👤 **الاسم:** `{name}`\n🔑 **الباسورد:** `{pwd}`\n🔗 **رابط'
-        f' الصفحة:** [اضغط هنا]({page_link})\n🎵 **رابط الأغنية:**'
-        f' {song_link}\n------------------\n'
+        f'👤 الاسم: {name}\n🔑 الباسورد: {pwd}\n🔗 رابط الصفحة: {page_link}\n🎵'
+        f' الأغنية: {song_link}\n------------------\n'
     )
 
   markup = types.InlineKeyboardMarkup()
   markup.add(
       types.InlineKeyboardButton('🔙 القائمة الرئيسية', callback_data='main_menu')
   )
-  bot.send_message(
-      chat_id,
-      text,
-      parse_mode='Markdown',
-      reply_markup=markup,
-      disable_web_page_preview=True,
-  )
+  bot.send_message(chat_id, text, reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'btn_del_menu')
@@ -147,11 +138,7 @@ def callback_del_menu(call):
   markup.add(
       types.InlineKeyboardButton('🔙 القائمة الرئيسية', callback_data='main_menu')
   )
-  bot.send_message(
-      chat_id,
-      '🗑️ اختر المستخدم الذي تريد حذفه:',
-      reply_markup=markup,
-  )
+  bot.send_message(chat_id, '🗑️ اختر المستخدم الذي تريد حذفه:', reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('del_'))
@@ -172,8 +159,7 @@ def callback_execute_delete(call):
       )
       bot.send_message(
           chat_id,
-          f'✅ تم حذف المستخدم **{name_to_del}** بنجاح!',
-          parse_mode='Markdown',
+          f'✅ تم حذف المستخدم {name_to_del} بنجاح!',
           reply_markup=markup,
       )
     else:
@@ -186,9 +172,7 @@ def callback_execute_delete(call):
 def callback_main_menu(call):
   chat_id = call.message.chat.id
   bot.answer_callback_query(call.id)
-  bot.send_message(
-      chat_id, '🏠 القائمة الرئيسية:', reply_markup=main_menu()
-  )
+  bot.send_message(chat_id, '🏠 القائمة الرئيسية:', reply_markup=main_menu())
 
 
 @bot.message_handler(
@@ -203,16 +187,12 @@ def handle_steps(message):
   if step == 'waiting_for_name':
     temp_data[chat_id]['name'] = text
     user_steps[chat_id] = 'waiting_for_pass'
-    bot.reply_to(message, '🔑 أرسل الآن **كلمة المرور**:', parse_mode='Markdown')
+    bot.reply_to(message, '🔑 أرسل الآن كلمة المرور:')
 
   elif step == 'waiting_for_pass':
     temp_data[chat_id]['password'] = text
     user_steps[chat_id] = 'waiting_for_song'
-    bot.reply_to(
-        message,
-        '🎵 أرسل الآن **رابط الأغنية** (أو اكتب `لا` لو مفيش):',
-        parse_mode='Markdown',
-    )
+    bot.reply_to(message, '🎵 أرسل الآن رابط الأغنية (أو اكتب لا لو مفيش):')
 
   elif step == 'waiting_for_song':
     song_link = '' if text.lower() == 'لا' else text
@@ -242,21 +222,15 @@ def handle_steps(message):
           )
       )
       msg_text = (
-          f'✅ تمت الإضافة بنجاح!\n\n👤 الاسم: `{name}`\n🔑 الباسورد:'
-          f' `{password}`\n🔗 رابط صفحة العميل: [فتح الصفحة]({page_link})\n🎵'
-          f' الأغنية: {song_link if song_link else "لا يوجد"}'
+          f'✅ تمت الإضافة بنجاح!\n\n👤 الاسم: {name}\n🔑 الباسورد:'
+          f' {password}\n🔗 رابط صفحة العميل:\n{page_link}\n🎵 الأغنية:'
+          f' {song_link if song_link else "لا يوجد"}'
       )
-      bot.send_message(
-          chat_id,
-          msg_text,
-          parse_mode='Markdown',
-          reply_markup=markup,
-          disable_web_page_preview=True,
-      )
+      bot.send_message(chat_id, msg_text, reply_markup=markup)
     else:
       bot.send_message(chat_id, '❌ حدث خطأ في الاتصال بجيت هاب.')
 
 
 if __name__ == '__main__':
-  print('Bot is running...')
+  print('Bot is running smoothly...')
   bot.infinity_polling()
