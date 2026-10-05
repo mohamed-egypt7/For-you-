@@ -7,7 +7,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filte
 BOT_TOKEN = "8882621676:AAFNQ0B3q6rPSMTIujyIHGYiep9xNM1rgZU"
 ADMIN_CHAT_ID = "8718173410"
 
-# رابط الـ Web App الخاص بجوجل شيت اللي لسه مطلعينه
+# رابط الـ Web App الخاص بجوجل شيت
 GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxAPL-k0nOCQugrFW0u8WaudCjftB5_qtQroUn03QbNHp0wdzvYopdnFZP3CUroTdvfRA/exec"
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -20,7 +20,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         original_text = message.reply_to_message.text
         admin_reply = message.text
 
-        # استخراج الـ IP الخاص بالزائر من النص القديم للرسالة اللي وصلت لك
+        # استخراج الـ IP الخاص بالزائر من النص القديم للرسالة
         visitor_ip = None
         for line in original_text.split('\n'):
             if "IP:" in line:
@@ -35,8 +35,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     "message": "admin_reply", # علامة عشان السكريبت يعرف إنه رد أدمن
                     "reply": admin_reply
                 }
-                # بما أن جوجل شيت بيقبل POST، هنعدل تعديل بسيط أو نبعت للـ doGet/doPost
-                # هبسطهالك: هنبعت بطلب لجوجل شيت يupate الرد مباشرة
                 requests.post(GOOGLE_SCRIPT_URL, json=payload)
                 
                 await message.reply_text(f"✅ تم إرسال الرد للزائر بنجاح:\n{admin_reply}")
@@ -45,12 +43,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await message.reply_text("⚠️ لم يتم التعرف على IP الزائر في هذه الرسالة.")
 
-async def main():
+def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     print("🤖 بوت تليجرام يعمل الآن ومربوط بـ Google Sheets...")
-    await app.run_polling()
+    app.run_polling()
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    main()
