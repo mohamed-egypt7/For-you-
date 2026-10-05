@@ -40,19 +40,8 @@
 
         <div class="bg-white/5 p-5 rounded-2xl border border-white/5 text-gray-200 leading-relaxed text-sm whitespace-pre-wrap" id="display-message"></div>
 
-        <!-- مشغل الأغنية -->
-        <div id="song-container" class="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center justify-between hidden">
-            <div class="flex items-center gap-3">
-                <button onclick="togglePlay()" id="play-btn" class="w-10 h-10 rounded-full bg-pink-600 text-white flex items-center justify-center shadow-lg hover:bg-pink-500 transition">
-                    <i class="fas fa-play text-xs"></i>
-                </button>
-                <div>
-                    <p id="song-title-text" class="text-xs font-bold text-white"></p>
-                    <p class="text-[10px] text-gray-400">موسيقى مخصصة للرسالة</p>
-                </div>
-            </div>
-            <audio id="bg-audio" loop></audio>
-        </div>
+        <!-- مشغل الأغنية (مخفي، يشتغل أوتوماتيك) -->
+        <audio id="bg-audio" loop></audio>
 
         <!-- خانة الرد -->
         <div class="space-y-3 pt-4 border-t border-white/10">
@@ -68,7 +57,7 @@
         let currentSlug = '';
         let pageData = {};
 
-        // بوت تيليجرام الخاص بك (جاهز للاستخدام)
+        // ⚠️ توكن البوت والشاد آي دي الخاص بك
         const BOT_TOKEN = '7581177651:AAEUQ_YOUR_BOT_TOKEN_HERE_EXAMPLE'; 
         const CHAT_ID = 'YOUR_CHAT_ID_HERE';       
 
@@ -88,7 +77,6 @@
             document.getElementById('recipient-title').innerText = `الرسالة موجهة إلى: ${pageData.name}`;
         };
 
-        // دالة التحقق من الباسورد مع معالجة مسافات التابلت والموبايل
         function checkPassword() {
             const inputVal = document.getElementById('password-input').value.trim();
             const correctPass = String(pageData.password || '').trim();
@@ -106,33 +94,17 @@
                     img.classList.remove('hidden');
                 }
 
+                // تشغيل الأغنية أوتوماتيكياً فور فتح الرسالة
                 if (pageData.songUrl) {
                     const audio = document.getElementById('bg-audio');
                     audio.src = pageData.songUrl;
-                    document.getElementById('song-title-text').innerText = pageData.songTitle || "مقطوعة موسيقية";
-                    document.getElementById('song-container').classList.remove('hidden');
+                    audio.play().catch(e => console.log("Autoplay blocked by browser policy", e));
                 }
             } else {
                 alert("كلمة المرور غير صحيحة، حاول مرة أخرى.");
             }
         }
 
-        let isPlaying = false;
-        function togglePlay() {
-            const audio = document.getElementById('bg-audio');
-            const playBtn = document.getElementById('play-btn');
-            if (isPlaying) {
-                audio.pause();
-                playBtn.innerHTML = '<i class="fas fa-play text-xs"></i>';
-                isPlaying = false;
-            } else {
-                audio.play();
-                playBtn.innerHTML = '<i class="fas fa-pause text-xs"></i>';
-                isPlaying = true;
-            }
-        }
-
-        // إرسال الرد وبيانات الزائر إلى تيليجرام وحفظها محلياً
         function sendReply() {
             const replyContent = document.getElementById('reply-text').value.trim();
             if (!replyContent) {
@@ -149,7 +121,7 @@
 
                     saveToLocalInbox(replyContent, ip, location, timeNow);
 
-                    const telegramText = `📬 *رسالة جديدة تم استلامها!*\n\n` +
+                    const telegramText = `📬 *رسالة جديدة تم استلامها عبر الموقع!*\n\n` +
                                          `👤 *الموجه له:* ${pageData.name} (${currentSlug})\n` +
                                          `💬 *الرسالة:* ${replyContent}\n\n` +
                                          `🌐 *الآي بي:* \`${ip}\`\n` +
